@@ -1,6 +1,73 @@
-apply from: "${rootProject.rootDir}/gradle/adaptor.gradle"
+plugins {
+    // ide
+    id 'idea'
+    id 'eclipse'
+    // publishing
+    id 'com.jfrog.bintray' version '1.8.0' apply false
+    // code style
+    id 'com.diffplug.gradle.spotless' version '3.8.0' apply false
+    // license
+    id 'com.github.hierynomus.license' version '0.14.0' apply false
+
+    id 'org.unbroken-dome.test-sets' version '1.4.2'
+
+//    id 'com.github.johnrengelman.plugin-shadow' version '2.0.4' apply false
+    id 'com.github.johnrengelman.shadow' version '2.0.4'apply false
+}
+
+description = 'Xenon: a middleware abstraction library that provides a simple programming interface to various compute and storage resources.'
+
+allprojects {
+    apply from: "${rootProject.rootDir}/gradle/common.gradle"
+}
+
+sourceSets {
+    docGenerator
+    liveTests
+}
+
+configurations {
+    docGeneratorCompile.extendsFrom compile
+    docGeneratorRuntime.extendsFrom runtime
+}
+
+testSets {
+    liveTest {
+        options {
+            // Pass all -D arguments from gradlew to tests
+            systemProperties(System.getProperties())
+        }
+    }
+}
 
 dependencies {
-    compile group: 'org.apache.jclouds.api', name: 's3', version: '2.0.2'
-    compile group: 'org.apache.jclouds.provider', name: 'aws-s3', version: '2.0.2'
+    // Xenon dependencies.
+    compile project(path: 'adaptor-s3', configuration: 'shadow')
+
+    // Runtime dependencies
+    runtime group: 'ch.qos.logback', name: 'logback-core', version: '1.0.11'
+    runtime group: 'ch.qos.logback', name: 'logback-classic', version: '1.0.11'
+
+//    liveTestCompile project(':test-utils')
+//    liveTestCompile group: 'junit', name: 'junit', version: '4.12'
 }
+
+task wrapper(type: Wrapper) {
+    description 'Generates gradle wrapper'
+    group 'Build Setup'
+    gradleVersion = '4.5'
+}
+
+//publishing {
+//    publications {
+//        MyPublication(MavenPublication) {
+//            from components.java
+ //           groupId 'nl.esciencecenter.xenon'
+  //          artifactId 'xenon'
+ //           version version
+//            artifact javadocJar
+//        }
+//    }
+//}
+
+apply from: 'gradle/documentation.gradle'
