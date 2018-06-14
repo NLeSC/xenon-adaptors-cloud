@@ -31,6 +31,43 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
 
+//sourceSets {
+//    docGenerator
+//    liveTests
+//}
+
+//configurations {
+//    docGeneratorCompile.extendsFrom compile
+//    docGeneratorRuntime.extendsFrom runtime
+//}
+
+//testSets {
+//    liveTest {
+//        options {
+//            // Pass all -D arguments from gradlew to tests
+//            systemProperties(System.getProperties())
+//        }
+//    }
+//}
+
+task wrapper(type: Wrapper) {
+    description 'Generates gradle wrapper'
+    group 'Build Setup'
+    gradleVersion = '4.5'
+}
+
+//publishing {
+//    publications {
+//        MyPublication(MavenPublication) {
+//            from components.java
+ //           groupId 'nl.esciencecenter.xenon'
+  //          artifactId 'xenon'
+ //           version version
+//            artifact javadocJar
+//        }
+//    }
+//}
+
 // See progress of tests
 tasks.withType(Test) {
     // only verbose logging on when CI environment var is set, because on CI we can't look at html test reports
@@ -67,7 +104,7 @@ spotless {
 }
 
 license {
-    ext.copyright_year = 2013
+    ext.copyright_year = 2018
     ext.copyright_owner = 'Netherlands eScience Center'
     header rootProject.file('gradle/HEADER')
     strictCheck true

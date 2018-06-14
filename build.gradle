@@ -1,73 +1,53 @@
 plugins {
     // ide
+    id 'java'
     id 'idea'
     id 'eclipse'
     // publishing
     id 'com.jfrog.bintray' version '1.8.0' apply false
     // code style
-    id 'com.diffplug.gradle.spotless' version '3.8.0' apply false
+    id 'com.diffplug.gradle.spotless' version '3.8.0' 
     // license
-    id 'com.github.hierynomus.license' version '0.14.0' apply false
-
+    id 'com.github.hierynomus.license' version '0.14.0' 
     id 'org.unbroken-dome.test-sets' version '1.4.2'
-
-//    id 'com.github.johnrengelman.plugin-shadow' version '2.0.4' apply false
-    id 'com.github.johnrengelman.shadow' version '2.0.4'apply false
+    id 'com.github.johnrengelman.shadow' version '2.0.4'
 }
 
-description = 'Xenon: a middleware abstraction library that provides a simple programming interface to various compute and storage resources.'
+description = 'Cloud adaptors for Xenon.'
 
-allprojects {
-    apply from: "${rootProject.rootDir}/gradle/common.gradle"
-}
-
-sourceSets {
-    docGenerator
-    liveTests
-}
-
-configurations {
-    docGeneratorCompile.extendsFrom compile
-    docGeneratorRuntime.extendsFrom runtime
-}
-
-testSets {
-    liveTest {
-        options {
-            // Pass all -D arguments from gradlew to tests
-            systemProperties(System.getProperties())
-        }
-    }
-}
+apply from: 'gradle/common.gradle'
+apply from: 'gradle/adaptor.gradle'
 
 dependencies {
-    // Xenon dependencies.
-    compile project(path: 'adaptor-s3', configuration: 'shadow')
+    // Adaptor dependencies.
+    compile group: 'nl.esciencecenter.xenon', name: 'xenon', version: '3.0.0'
+    compile group: 'org.apache.jclouds.api', name: 's3', version: '2.0.2'
+    compile group: 'org.apache.jclouds.provider', name: 'aws-s3', version: '2.0.2'
 
     // Runtime dependencies
-    runtime group: 'ch.qos.logback', name: 'logback-core', version: '1.0.11'
-    runtime group: 'ch.qos.logback', name: 'logback-classic', version: '1.0.11'
+    shadow group: 'ch.qos.logback', name: 'logback-core', version: '1.0.11'
+    shadow group: 'ch.qos.logback', name: 'logback-classic', version: '1.0.11'
 
 //    liveTestCompile project(':test-utils')
 //    liveTestCompile group: 'junit', name: 'junit', version: '4.12'
 }
 
-task wrapper(type: Wrapper) {
-    description 'Generates gradle wrapper'
-    group 'Build Setup'
-    gradleVersion = '4.5'
+ext.shadowPrefix = project.name.replaceAll('-', '_') + '.shadow.'
+
+shadowJar {
+   mergeServiceFiles()
+   classifier = null
+   relocate 'org.jclouds', shadowPrefix + 'org.jclouds'
+   relocate 'com.google', shadowPrefix + 'com.google'
+   relocate 'org.objectweb.asm', shadowPrefix + 'org.objectweb.asm'
+   relocate 'com.jamesmurty', shadowPrefix + 'com.jamesmurty'
+   relocate 'net.iharder', shadowPrefix + 'net.iharder'
+   relocate 'org.aopalliance', shadowPrefix + 'org.aopalliance'
+   relocate 'net.sf.cglib', shadowPrefix + 'net.sf.cglib'
+   relocate 'javax', shadowPrefix + 'javax'
+
+   dependencies {
+      exclude(dependency('nl.esciencecenter.xenon:xenon-core:3.0.0'))
+      exclude(dependency('org.slf4j::.*'))
+   }
 }
-
-//publishing {
-//    publications {
-//        MyPublication(MavenPublication) {
-//            from components.java
- //           groupId 'nl.esciencecenter.xenon'
-  //          artifactId 'xenon'
- //           version version
-//            artifact javadocJar
-//        }
-//    }
-//}
-
-apply from: 'gradle/documentation.gradle'
