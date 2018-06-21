@@ -1,23 +1,28 @@
-# Compiled class file
-*.class
+# eclipse
+/.classpath
+/.project
+/.settings
 
-# Log file
-*.log
+# intellij
+/.idea
+/*.iml
+/*/*.iml
+/*.ipr
+/*.iws
 
-# BlueJ files
-*.ctxt
+# gradle
+/build
+/*/build
+/.gradle
 
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
+# integration tests
+/filesystem-test-fixture
 
-# Package Files #
-*.jar
-*.war
-*.nar
-*.ear
-*.zip
-*.tar.gz
-*.rar
+# Rendered Jekyll site
+/docs/_site
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
+# Sonar
+/.scannerwork
+/.sonarlint
+/build-eclipse/
+/bin/
