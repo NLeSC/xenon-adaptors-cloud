@@ -13,24 +13,26 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '2.0.4'
 }
 
+version = '3.0.0'
 description = 'Cloud adaptors for Xenon.'
+
+ext {
+    xenonVersion = '3.0.0'
+}
 
 apply from: 'gradle/common.gradle'
 apply from: 'gradle/adaptor.gradle'
 
 dependencies {
     // Adaptor dependencies.
-    compile group: 'nl.esciencecenter.xenon', name: 'xenon', version: '3.0.0'
+    compile group: 'nl.esciencecenter.xenon', name: 'xenon', version: xenonVersion
+
     compile group: 'org.apache.jclouds.api', name: 's3', version: '2.0.2'
     compile group: 'org.apache.jclouds.provider', name: 'aws-s3', version: '2.0.2'
 
     // Runtime dependencies
     shadow group: 'ch.qos.logback', name: 'logback-core', version: '1.0.11'
     shadow group: 'ch.qos.logback', name: 'logback-classic', version: '1.0.11'
-
-    docGeneratorRuntime group: 'nl.esciencecenter.xenon', name: 'xenon-docgenerator', version: '3.0.0'
-    docGeneratorCompile sourceSets.main.output
-    docGeneratorRuntime configurations.runtime
 
 //    liveTestCompile project(':test-utils')
 //    liveTestCompile group: 'junit', name: 'junit', version: '4.12'
@@ -51,7 +53,7 @@ shadowJar {
    relocate 'javax', shadowPrefix + 'javax'
 
    dependencies {
-      exclude(dependency('nl.esciencecenter.xenon:xenon-core:3.0.0'))
+      exclude(dependency('nl.esciencecenter.xenon:xenon:.*'))
       exclude(dependency('org.slf4j::.*'))
    }
 }
