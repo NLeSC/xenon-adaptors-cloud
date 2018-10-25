@@ -46,7 +46,7 @@ task jacocoFixedClientEnvironmentTestReport(type: JacocoReport) {
 publishing {
     publications {
         MyPublication(MavenPublication) {
-            artifact shadowJar
+            from components.java
             artifact javadocJar
             artifact sourcesJar
         }
