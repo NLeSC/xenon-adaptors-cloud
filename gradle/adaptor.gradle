@@ -16,11 +16,11 @@ integrationTest.mustRunAfter test
 dependencies {
     integrationTestCompile group: 'junit', name: 'junit', version: '4.12'
     integrationTestCompile group: 'com.palantir.docker.compose', name: 'docker-compose-rule-junit4', version: '0.33.0'
-    integrationTestCompile group: 'nl.esciencecenter.xenon', name: 'xenon-testapi', version: '3.0.0'
+    integrationTestCompile group: 'nl.esciencecenter.xenon', name: 'xenon-testapi', version: xenonVersion
 
 //    fixedClientEnvironmentTestCompile group: 'com.palantir.docker.compose', name: 'docker-compose-rule-junit4', version: '0.33.0'
 //    fixedClientEnvironmentTestCompile group: 'junit', name: 'junit', version: '4.12'
-//    fixedClientEnvironmentTestCompile project(':test-utils')
+//    fixedClientEnvironmentTestCompile group: 'nl.esciencecenter.xenon', name: 'xenon-testapi', version: xenonVersion
 }
 
 task jacocoIntegrationTestReport(type: JacocoReport) {
@@ -46,7 +46,7 @@ task jacocoFixedClientEnvironmentTestReport(type: JacocoReport) {
 publishing {
     publications {
         MyPublication(MavenPublication) {
-            artifact shadowJar
+            from components.java
             artifact javadocJar
             artifact sourcesJar
         }
