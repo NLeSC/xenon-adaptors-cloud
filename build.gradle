@@ -6,7 +6,7 @@ plugins {
     // publishing
     id 'com.jfrog.bintray' version '1.8.0' apply false
     // code style
-    id 'com.diffplug.gradle.spotless' version '3.8.0' 
+    id 'com.diffplug.gradle.spotless' version '3.16.0' 
     // license
     id 'com.github.hierynomus.license' version '0.14.0' 
     id 'org.unbroken-dome.test-sets' version '1.4.2'
