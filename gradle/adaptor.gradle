@@ -14,13 +14,22 @@ check.dependsOn integrationTest
 integrationTest.mustRunAfter test
 
 dependencies {
-    integrationTestCompile group: 'junit', name: 'junit', version: '4.12'
-    integrationTestCompile group: 'com.palantir.docker.compose', name: 'docker-compose-rule-junit4', version: '0.33.0'
-    integrationTestCompile group: 'nl.esciencecenter.xenon', name: 'xenon-testapi', version: xenonVersion
+    integrationTestImplementation group: 'junit', name: 'junit', version: '4.12'
+    integrationTestImplementation group: 'com.palantir.docker.compose', name: 'docker-compose-rule-junit4', version: '0.33.0'
+
+    // TODO Grabbing xenon from jitpack, switch to jcenter after release
+    integrationTestImplementation 'com.github.xenon-middleware.xenon:xenon-testapi:821dd645a0'
+//    integrationTestImplementation group: 'nl.esciencecenter.xenon', name: 'xenon-testapi', version: xenonVersion
 
 //    fixedClientEnvironmentTestCompile group: 'com.palantir.docker.compose', name: 'docker-compose-rule-junit4', version: '0.33.0'
 //    fixedClientEnvironmentTestCompile group: 'junit', name: 'junit', version: '4.12'
 //    fixedClientEnvironmentTestCompile group: 'nl.esciencecenter.xenon', name: 'xenon-testapi', version: xenonVersion
+}
+
+jacocoTestCoverageVerification.group = 'Code coverage reporting'
+
+jacoco {
+    toolVersion = "0.8.3"
 }
 
 task jacocoIntegrationTestReport(type: JacocoReport) {
@@ -52,3 +61,16 @@ publishing {
         }
     }
 }
+
+sonarqube {
+    properties {
+        property 'sonar.projectKey', 'xenon-middleware_xenon-adaptors-cloud'
+        property 'sonar.host.url', 'https://sonarcloud.io'
+        property 'sonar.organization', "xenon-middleware"
+        property 'sonar.language', 'java'
+        property 'sonar.links.homepage', 'https://github.com/xenon-middleware/xenon-adaptors-cloud'
+        properties["sonar.tests"] += sourceSets.integrationTest.allSource.srcDirs
+        property 'sonar.jacoco.reportPaths', [jacocoTestReport.executionData, jacocoIntegrationTestReport.executionData]
+    }
+}
+project.tasks["sonarqube"].dependsOn "check"

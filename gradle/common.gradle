@@ -10,8 +10,8 @@ defaultTasks 'clean', 'assemble', 'test'
 
 //    METADATA
 // ==============
-sourceCompatibility = '1.8'
-targetCompatibility = '1.8'
+sourceCompatibility = JavaVersion.VERSION_1_9
+targetCompatibility = JavaVersion.VERSION_1_9
 
 repositories {
     mavenLocal()
@@ -108,9 +108,9 @@ bintray {
         repo = 'xenon'
         userOrg = 'nlesc'
         licenses = ['Apache-2.0']
-        websiteUrl = 'https://nlesc.github.io/Xenon'
-        vcsUrl = 'https://github.com/NLeSC/xenon-adaptors-cloud.git'
-        issueTrackerUrl = 'https://github.com/NLeSC/xenon-adaptors-cloud/issues'
+        websiteUrl = 'https://xenon-middleware.github.io/xenon'
+        vcsUrl = 'https://github.com/xenon-middleware/xenon-adaptors-cloud.git'
+        issueTrackerUrl = 'https://github.com/xenon-middleware/xenon-adaptors-cloud/issues'
     }
     publications = ['MyPublication']
 }
@@ -132,5 +132,3 @@ artifacts {
     archives javadocJar
     archives sourcesJar
 }
-
-
