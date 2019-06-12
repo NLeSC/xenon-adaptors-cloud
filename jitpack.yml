@@ -1,0 +1,6 @@
+# The enon-adaptors-cloud releases are available on jcenter.
+# To get snapshots of branches use https://jitpack.io/#xenon-middleware/xenon-adaptors-cloud
+install:
+- ./gradlew clean -Pgroup=$GROUP -Pversion=$VERSION publishToMavenLocal
+jdk:
+- openjdk9
