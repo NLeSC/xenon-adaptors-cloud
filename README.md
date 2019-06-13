@@ -32,6 +32,6 @@ Chapter is for xenon developers.
 The major version should be the same as the used xenon library.
 
 1. Bump version in `build.gradle` and `CITATION.cff`, update CHANGELOG.md and commit/push 
-1. Publish to bintray with `BINTRAY_USER=*** BINTRAY_KEY=**** ./gradlew bintrayPublish`
+1. Publish to bintray with `BINTRAY_USER=*** BINTRAY_KEY=**** ./gradlew bintrayUpload`
 1. Create GitHub release
 1. Announce release so users of library like xenon-cli can use new version.

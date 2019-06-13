@@ -106,7 +106,9 @@ bintray {
     key = System.getenv('BINTRAY_KEY')
     pkg {
         repo = 'xenon'
+        name = 'xenon-adaptors-cloud'
         userOrg = 'nlesc'
+        publish = true
         licenses = ['Apache-2.0']
         websiteUrl = 'https://xenon-middleware.github.io/xenon'
         vcsUrl = 'https://github.com/xenon-middleware/xenon-adaptors-cloud.git'
