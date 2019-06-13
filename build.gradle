@@ -29,9 +29,7 @@ apply from: 'gradle/adaptor.gradle'
 
 dependencies {
     // Adaptor dependencies.
-    // TODO Grabbing xenon from jitpack, switch to jcenter after release
-    implementation 'com.github.xenon-middleware:xenon:de018e54d842c3fbf7f579e3975d41d2f5b598ee'
-//    implementation group: 'nl.esciencecenter.xenon', name: 'xenon', version: xenonVersion
+    implementation group: 'nl.esciencecenter.xenon', name: 'xenon', version: xenonVersion
 
     implementation group: 'org.apache.jclouds.api', name: 's3', version: '2.1.2'
     implementation group: 'org.apache.jclouds.provider', name: 'aws-s3', version: '2.1.2'
