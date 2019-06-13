@@ -104,15 +104,19 @@ licenseFormat.description = "Applies the license found in the header file in fil
 bintray {
     user = System.getenv('BINTRAY_USER')
     key = System.getenv('BINTRAY_KEY')
+    publish = true
     pkg {
         repo = 'xenon'
         name = 'xenon-adaptors-cloud'
         userOrg = 'nlesc'
-        publish = true
+        desc = 'Cloud related adaptors for xenon library'
         licenses = ['Apache-2.0']
         websiteUrl = 'https://xenon-middleware.github.io/xenon'
         vcsUrl = 'https://github.com/xenon-middleware/xenon-adaptors-cloud.git'
         issueTrackerUrl = 'https://github.com/xenon-middleware/xenon-adaptors-cloud/issues'
+        githubRepo = 'xenon-middleware/xenon-adaptors-cloud'
+        githubReleaseNotesFile = 'README.md'
+        publicDownloadNumbers = true
     }
     publications = ['MyPublication']
 }
