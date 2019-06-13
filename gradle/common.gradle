@@ -118,13 +118,13 @@ tasks.publish.dependsOn 'bintrayUpload'
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
     description "Creates jar file of javadoc"
-    classifier = 'javadoc'
+    archiveClassifier = 'javadoc'
     from javadoc.destinationDir
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
     description "Creates jar file of Java sources"
-    classifier = 'sources'
+    archiveClassifier = 'sources'
     from sourceSets.main.allSource
 }
 
