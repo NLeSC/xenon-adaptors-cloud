@@ -14,8 +14,8 @@ authors:
 - given-names: Atze
   family-names: van der Ploeg
   affiliation: Netherlands eScience Center
-version: 3.0.0
-doi: 10.5281/zenodo.3245390
+version: 3.0.1
+doi: 10.5281/zenodo.3245389
 date-released: '2019-06-13'
 repository-code: https://github.com/xenon-middleware/xenon-adaptors-cloud
 license: Apache-2.0
