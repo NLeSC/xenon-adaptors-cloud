@@ -45,9 +45,7 @@ dependencies {
 //    }
 //}
 
-wrapper {
 
-}
 // See progress of tests
 tasks.withType(Test) {
     // only verbose logging on when CI environment var is set, because on CI we can't look at html test reports
