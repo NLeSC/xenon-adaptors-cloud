@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+## [3.0.1] - 2019-06-14
+
 ### Fixes
 
 * Support https in location (#2) 
