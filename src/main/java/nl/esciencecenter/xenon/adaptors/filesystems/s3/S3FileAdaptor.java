@@ -53,7 +53,7 @@ public class S3FileAdaptor extends FileAdaptor {
     public static final String BUFFER_SIZE = PREFIX + "bufferSize";
 
     /** The locations supported by this adaptor */
-    private static final String[] ADAPTOR_LOCATIONS = new String[] { "[http://host[:port]]/bucketname[/workdir]" };
+    private static final String[] ADAPTOR_LOCATIONS = new String[] { "[http[s]://host[:port]]/bucketname[/workdir]" };
 
     /** List of properties supported by this FTP adaptor */
     private static final XenonPropertyDescription[] VALID_PROPERTIES = new XenonPropertyDescription[] {
@@ -90,7 +90,7 @@ public class S3FileAdaptor extends FileAdaptor {
         String bucketPath = null;
         Path path = null;
 
-        if (location.startsWith("http://")) {
+        if (location.startsWith("http://") || location.startsWith("https://")) {
             URI uri;
 
             try {
