@@ -16,9 +16,7 @@ The library can be added as a Gradle dependency to your own project with
 ```groovy
 repositories {
     // ... others
-    maven {
-        url 'https://dl.bintray.com/nlesc/xenon' // xenon-* are published on bintray, not on jcenter
-    }
+    jcenter()
 }
 dependencies {
     // ... others

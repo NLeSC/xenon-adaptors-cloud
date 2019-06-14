@@ -20,9 +20,6 @@ repositories {
     maven {
         url 'https://dl.bintray.com/palantir/releases' // docker-compose-rule is published on bintray
     }
-    maven {
-        url 'https://dl.bintray.com/nlesc/xenon' // xenon-testapi is published on bintray, not on jcenter
-    }
 }
 
 dependencies {
