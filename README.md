@@ -24,6 +24,10 @@ dependencies {
 }
 ```
 
+## Testing
+
+See https://github.com/xenon-middleware/xenon/blob/master/TESTING.md
+
 ## New release
 
 Chapter is for xenon developers.
