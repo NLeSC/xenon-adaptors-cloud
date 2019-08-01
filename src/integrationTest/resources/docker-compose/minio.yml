@@ -17,6 +17,6 @@
 version: '3'
 services:
   minio:
-    image: nlesc/xenon-s3
+    image: xenonmiddleware/s3
     ports:
     - 9000

@@ -20,7 +20,7 @@ version = '3.0.1'
 description = 'Cloud adaptors for Xenon'
 
 ext {
-    xenonVersion = '3.0.0'
+    xenonVersion = '3.0.1'
 }
 
 apply from: 'gradle/common.gradle'
