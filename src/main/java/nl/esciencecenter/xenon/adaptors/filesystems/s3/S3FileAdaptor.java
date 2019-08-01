@@ -18,9 +18,6 @@ package nl.esciencecenter.xenon.adaptors.filesystems.s3;
 import java.net.URI;
 import java.util.Map;
 
-import org.jclouds.ContextBuilder;
-import org.jclouds.blobstore.BlobStoreContext;
-
 import nl.esciencecenter.xenon.InvalidCredentialException;
 import nl.esciencecenter.xenon.InvalidLocationException;
 import nl.esciencecenter.xenon.InvalidPropertyException;
@@ -29,11 +26,18 @@ import nl.esciencecenter.xenon.XenonPropertyDescription;
 import nl.esciencecenter.xenon.XenonPropertyDescription.Type;
 import nl.esciencecenter.xenon.adaptors.XenonProperties;
 import nl.esciencecenter.xenon.adaptors.filesystems.FileAdaptor;
-import nl.esciencecenter.xenon.adaptors.filesystems.jclouds.JCloudsFileSytem;
 import nl.esciencecenter.xenon.credentials.Credential;
+import nl.esciencecenter.xenon.credentials.DefaultCredential;
 import nl.esciencecenter.xenon.credentials.PasswordCredential;
 import nl.esciencecenter.xenon.filesystems.FileSystem;
 import nl.esciencecenter.xenon.filesystems.Path;
+import software.amazon.awssdk.auth.credentials.*;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.model.GetBucketLocationRequest;
+import software.amazon.awssdk.services.s3.model.GetBucketLocationResponse;
 
 /**
  * Created by atze on 29-6-17.
@@ -44,7 +48,7 @@ public class S3FileAdaptor extends FileAdaptor {
     public static final String ADAPTOR_NAME = "s3";
 
     /** A description of this adaptor */
-    private static final String ADAPTOR_DESCRIPTION = "The JClouds adaptor uses Apache JClouds to talk to s3 and others";
+    private static final String ADAPTOR_DESCRIPTION = "AWS S3 blob store filesystem adaptor";
 
     /** All our own properties start with this prefix. */
     public static final String PREFIX = FileAdaptor.ADAPTORS_PREFIX + ADAPTOR_NAME + ".";
@@ -55,9 +59,13 @@ public class S3FileAdaptor extends FileAdaptor {
     /** The locations supported by this adaptor */
     private static final String[] ADAPTOR_LOCATIONS = new String[] { "[http[s]://host[:port]]/bucketname[/workdir]" };
 
-    /** List of properties supported by this FTP adaptor */
+    public static final String REGION = PREFIX + "region";
+    /** List of properties supported by this S3 adaptor */
     private static final XenonPropertyDescription[] VALID_PROPERTIES = new XenonPropertyDescription[] {
-            new XenonPropertyDescription(BUFFER_SIZE, Type.SIZE, "64K", "The buffer size to use when copying files (in bytes).") };
+            new XenonPropertyDescription(BUFFER_SIZE, Type.SIZE, "64K", "The buffer size to use when copying files (in bytes)."),
+            new XenonPropertyDescription(REGION, Type.STRING, "us-west-1", "The AWS region")
+    };
+    public static final String DEFAULT_ENDPOINT = "https://s3.amazonaws.com";
 
     public S3FileAdaptor() {
         super("s3", ADAPTOR_DESCRIPTION, ADAPTOR_LOCATIONS, VALID_PROPERTIES);
@@ -66,42 +74,45 @@ public class S3FileAdaptor extends FileAdaptor {
     @Override
     public FileSystem createFileSystem(String location, Credential credential, Map<String, String> properties) throws XenonException {
 
-        // An S3 URI has the form:
-        //
-        // [http://host[:port]]/bucketname[/workdir]
-        //
-        // Note that it may only contain a bucketname (in which case it connects to amazon AWS automatically), or it may contain a server adres and bucketname.
-        // In both cases, an optional workdir may be provided after the bucketname.
+        S3ClientBuilder builder = S3Client.builder();
+
+        XenonProperties xp = new XenonProperties(VALID_PROPERTIES, properties);
+        String region = xp.getStringProperty(REGION);
+        if (!"".equals(region)) {
+            builder = builder.region(Region.of(region));
+        }
+
+        if (credential == null || credential instanceof DefaultCredential) {
+            // TODO remove profile provider, just here for keeping creds secret for temporary tests
+            builder = builder.credentialsProvider(ProfileCredentialsProvider.create("xenon"));
+            // default is using system props or env vars or profile config file
+        } else  if (credential instanceof PasswordCredential) {
+            PasswordCredential pwUser = (PasswordCredential) credential;
+            AwsCredentials awsCreds = AwsBasicCredentials.create(pwUser.getUsername(), new String(pwUser.getPassword()));
+            builder = builder.credentialsProvider(StaticCredentialsProvider.create(awsCreds));
+        } else {
+            throw new InvalidCredentialException(ADAPTOR_NAME, "Credential type not supported");
+        }
+
+        URI server = null;
+        String bucket = null;
+        String bucketPath = null;
+        Path workDirectory = null;
 
         if (location == null || location.isEmpty()) {
             throw new InvalidLocationException(ADAPTOR_NAME, "Location may not be empty");
         }
-
-        if (credential == null) {
-            throw new InvalidCredentialException(ADAPTOR_NAME, "Credential may not be null.");
-        }
-
-        if (!(credential instanceof PasswordCredential /* || credential instanceof DefaultCredential */)) {
-            throw new InvalidCredentialException(ADAPTOR_NAME, "Credential type not supported");
-        }
-
-        String server = null;
-        String bucket = null;
-        String bucketPath = null;
-        Path path = null;
-
         if (location.startsWith("http://") || location.startsWith("https://")) {
             URI uri;
-
             try {
                 uri = new URI(location);
+                server =  new URI(uri.getScheme() + "://" + uri.getHost() + (uri.getPort() != -1 ? ":" + uri.getPort() : ""));
+                // Reconstruct the server address
+                bucketPath = uri.getPath();
             } catch (Exception e) {
                 throw new InvalidLocationException(ADAPTOR_NAME, "Failed to parse location: " + location, e);
             }
 
-            // Reconstruct the server address
-            server = uri.getScheme() + "://" + uri.getHost() + (uri.getPort() != -1 ? ":" + uri.getPort() : "");
-            bucketPath = uri.getPath();
         } else {
             bucketPath = location;
         }
@@ -118,14 +129,19 @@ public class S3FileAdaptor extends FileAdaptor {
 
         if (split < 0) {
             bucket = bucketPath;
-            path = new Path('/', "/");
+            workDirectory = new Path('/', "/");
         } else {
             // Split the bucket and the working dir in path.
             bucket = bucketPath.substring(0, split);
-            path = new Path('/', bucketPath.substring(split));
+            workDirectory = new Path('/', bucketPath.substring(split));
         }
 
-        XenonProperties xp = new XenonProperties(VALID_PROPERTIES, properties);
+        if (server != null) {
+            builder = builder.endpointOverride(server);
+            builder = builder.serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(true).build());
+        }
+
+        S3Client client = builder.build();
 
         long bufferSize = xp.getSizeProperty(BUFFER_SIZE);
 
@@ -134,31 +150,7 @@ public class S3FileAdaptor extends FileAdaptor {
                     "Invalid value for " + BUFFER_SIZE + ": " + bufferSize + " (must be between 1 and " + Integer.MAX_VALUE + ")");
         }
 
-        BlobStoreContext context = null;
-
-        if (credential instanceof PasswordCredential) {
-            PasswordCredential pwUser = (PasswordCredential) credential;
-            context = ContextBuilder.newBuilder("s3").endpoint(server).credentials(pwUser.getUsername(), new String(pwUser.getPassword()))
-                    .buildView(BlobStoreContext.class);
-        } else {
-            // Default credentials, so we do not need to set the credentials for the server
-            // context = ContextBuilder.newBuilder("s3").endpoint(server).credentials("anonymous", "javagat01").buildView(BlobStoreContext.class);
-            //
-            // System.out.println("EXISTS = " + context.getBlobStore().blobExists("minio", "filesystem-test-fixture2"));
-            //
-            // new Exception().printStackTrace(System.out);
-            //
-            // try {
-            // Thread.sleep(120);
-            // } catch (InterruptedException e) {
-            // // TODO Auto-generated catch block
-            // e.printStackTrace();
-            // }
-
-            throw new InvalidCredentialException(ADAPTOR_NAME, "Default credentials not supported yet!");
-        }
-
-        return new JCloudsFileSytem(getNewUniqueID(), ADAPTOR_NAME, server, credential, path, context, bucket, (int) bufferSize, xp);
+        return new S3FileSystem(getNewUniqueID(), ADAPTOR_NAME, location, credential, workDirectory, client, bucket, (int) bufferSize, xp);
     }
 
     @Override
@@ -205,6 +197,6 @@ public class S3FileAdaptor extends FileAdaptor {
     @Override
     public Class[] getSupportedCredentials() {
         // The S3 adaptor supports these credentials
-        return new Class[] { PasswordCredential.class };
+        return new Class[] {DefaultCredential.class, PasswordCredential.class };
     }
 }
