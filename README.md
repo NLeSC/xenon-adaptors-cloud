@@ -28,6 +28,16 @@ dependencies {
 
 See https://github.com/xenon-middleware/xenon/blob/master/TESTING.md
 
+To run live test on AWS S3, first create the test fixtures listed in [create_symlinks](https://github.com/xenon-middleware/xenon/blob/master/src/liveTest/resources/scripts/create_symlinks)
+and then run live test command:
+
+```sh
+./gradlew liveTest -Dxenon.filesystem=s3 \
+ -Dxenon.filesystem.location=https://s3.<region>.amazonaws.com/<bucket> \
+ -Dxenon.username=<access key> -Dxenon.password=<secret key> \
+ -Dxenon.basedir=/ -Dxenon.filesystem.expected.workdir=/
+```
+
 ## New release
 
 Chapter is for xenon developers.
