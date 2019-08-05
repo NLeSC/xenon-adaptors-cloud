@@ -56,14 +56,14 @@ public class S3MinioFileSystemDockerTestWithWorkdir extends S3FileSystemTestPare
 
             @Override
             public Path getExpectedWorkingDirectory() {
-                return new Path("/links");
+                return new Path("/filesystem-test-fixture/links");
             }
         };
     }
 
     @Override
     public FileSystem setupFileSystem() throws XenonException {
-        String location = docker.containers().container("minio").port(9000).inFormat("http://localhost:$EXTERNAL_PORT/filesystem-test-fixture/links");
+        String location = docker.containers().container("minio").port(9000).inFormat("http://localhost:$EXTERNAL_PORT/filesystem-test-fixture/filesystem-test-fixture/links");
         PasswordCredential cred = new PasswordCredential("xenon", "javagat01".toCharArray());
         Map<String, String> props = new HashMap<>();
         return FileSystem.create("s3", location, cred, props);

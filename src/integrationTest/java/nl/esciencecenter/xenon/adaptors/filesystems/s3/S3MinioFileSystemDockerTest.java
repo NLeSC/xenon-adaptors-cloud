@@ -46,7 +46,7 @@ public class S3MinioFileSystemDockerTest extends S3FileSystemTestParent {
 
             @Override
             public Path getExistingPath() {
-                return new Path("links/file0");
+                return new Path("filesystem-test-fixture/links/file0");
             }
 
             @Override

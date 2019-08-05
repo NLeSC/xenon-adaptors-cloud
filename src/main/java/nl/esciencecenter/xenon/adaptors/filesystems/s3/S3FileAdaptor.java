@@ -44,7 +44,7 @@ public class S3FileAdaptor extends FileAdaptor {
     public static final String ADAPTOR_NAME = "s3";
 
     /** A description of this adaptor */
-    private static final String ADAPTOR_DESCRIPTION = "The JClouds adaptor uses Apache JClouds to talk to s3 and others";
+    private static final String ADAPTOR_DESCRIPTION = "The S3 adaptor uses Apache JClouds to talk to s3 and others. To authenticate use PasswordCredential with access key id as username and secret access key as password";
 
     /** All our own properties start with this prefix. */
     public static final String PREFIX = FileAdaptor.ADAPTORS_PREFIX + ADAPTOR_NAME + ".";
