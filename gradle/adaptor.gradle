@@ -5,10 +5,16 @@ group = 'nl.esciencecenter.xenon.adaptors'
 testSets {
     integrationTest
     fixedClientEnvironmentTest
+    liveTest {
+        options {
+            // Pass all -D arguments from gradlew to tests
+            systemProperties(System.getProperties())
+        }
+    }
 }
 
 integrationTest.description = 'Run the integration tests against docker containers'
-fixedClientEnvironmentTest.description = 'Run the integration tests within and against docker containers, should be run within `nlesc/xenon-fixed-client` docker container'
+fixedClientEnvironmentTest.description = 'Run the integration tests within and against docker containers, should be run within `xenonmiddleware/fixed-client` docker container'
 
 check.dependsOn integrationTest
 integrationTest.mustRunAfter test
@@ -22,6 +28,8 @@ dependencies {
 //    fixedClientEnvironmentTestCompile group: 'com.palantir.docker.compose', name: 'docker-compose-rule-junit4', version: '0.33.0'
 //    fixedClientEnvironmentTestCompile group: 'junit', name: 'junit', version: '4.12'
 //    fixedClientEnvironmentTestCompile group: 'nl.esciencecenter.xenon', name: 'xenon-testapi', version: xenonVersion
+
+    liveTestImplementation group: 'nl.esciencecenter.xenon', name: 'xenon-livetest', version: xenonVersion
 }
 
 jacocoTestCoverageVerification.group = 'Code coverage reporting'
@@ -72,3 +80,20 @@ sonarqube {
     }
 }
 project.tasks["sonarqube"].dependsOn "check"
+
+liveTest.description = 'Runs the integration tests against live systems'
+// Never up to date, can not verify same config/props/remote is used second time
+liveTest.outputs.upToDateWhen {
+    false
+}
+
+task jacocoLiveTestReport(type: JacocoReport) {
+    description 'Generate coverage report of live integration tests'
+    group 'Code coverage reporting'
+    executionData liveTest
+    sourceSets sourceSets.main
+    reports {
+        xml.enabled = true // codecov depends on xml format report
+    }
+}
+
