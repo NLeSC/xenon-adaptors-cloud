@@ -9,6 +9,8 @@ Cloud related adaptors for [xenon library](https://github.com/xenon-middleware/x
 
 Implemented adaptors:
 * s3, Xenon filesystem adaptor for [Amazon S3 blob store](https://aws.amazon.com/s3/)
+
+See [Adaptor documentation](https://xenon-middleware.github.io/xenon-adaptors-cloud/) for what each adaptor offers and requires. 
  
 ## Usage
 
