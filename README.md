@@ -10,7 +10,7 @@ Cloud related adaptors for [xenon library](https://github.com/xenon-middleware/x
 Implemented adaptors:
 * s3, Xenon filesystem adaptor for [Amazon S3 blob store](https://aws.amazon.com/s3/)
 
-See [Adaptor documentation](https://xenon-middleware.github.io/xenon-adaptors-cloud/) for what each adaptor offers and requires. 
+See [adaptor documentation](https://xenon-middleware.github.io/xenon-adaptors-cloud/) for what each adaptor offers and requires. 
  
 ## Usage
 
@@ -22,7 +22,7 @@ repositories {
 }
 dependencies {
     // ... others
-    implementation group: 'nl.esciencecenter.xenon.adaptors', name: 'xenon-adaptors-cloud', version: '3.0.1'
+    implementation group: 'nl.esciencecenter.xenon.adaptors', name: 'xenon-adaptors-cloud', version: '3.0.2'
 }
 ```
 
