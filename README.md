@@ -50,4 +50,5 @@ The major version should be the same as the used xenon library.
 1. Bump version in `README.md`, `build.gradle` and `CITATION.cff`, update CHANGELOG.md and commit/push
 1. Publish to bintray with `BINTRAY_USER=*** BINTRAY_KEY=**** ./gradlew bintrayUpload`
 1. Create GitHub release
+1. In [Zenodo entry](https://doi.org/10.5281/zenodo.3245389), add [Xenon doi](https://doi.org/10.5281/zenodo.597993) as `is referenced by this upload`.
 1. Announce release so users of library like xenon-cli can use new version.
