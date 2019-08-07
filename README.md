@@ -44,6 +44,7 @@ Chapter is for xenon developers.
 
 The major version should be the same as the used xenon library.
 
+1. If new adaptor is added, also add it to `gradle/adaptor.gradle:adaptorDocumentation` and `META-INF/services/nl.esciencecenter.xenon.adaptors.filesystems.FileAdaptor`
 1. Bump version in `README.md`, `build.gradle` and `CITATION.cff`, update CHANGELOG.md and commit/push
 1. Publish to bintray with `BINTRAY_USER=*** BINTRAY_KEY=**** ./gradlew bintrayUpload`
 1. Create GitHub release

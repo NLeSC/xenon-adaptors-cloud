@@ -1,0 +1,40 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Xenon Javadoc overview</title></head><body>
+<p>A middleware abstraction library that provides a simple programming interface to various compute and storage resources.</p>
+The main entry points are<ul>
+<li><a href="https://xenon-middleware.github.io/xenon/versions/3.0.1/javadoc/nl/esciencecenter/xenon/schedulers/Scheduler.html">nl.esciencecenter.xenon.schedulers.Scheduler</a></li>
+<li><a href="https://xenon-middleware.github.io/xenon/versions/3.0.1/javadoc/nl/esciencecenter/xenon/filesystems/FileSystem.html">nl.esciencecenter.xenon.filesystems.FileSystem</a></li>
+</ul>
+<h1>Adaptor Documentation</h1>
+<p>This section contains the adaptor documentation which is generated from the information provided by the adaptors themselves.</p>
+<ul>
+<li><a href="#schedulers">Schedulers</a><ul>
+</ul></li>
+<li><a href="#filesystems">File systems</a><ul>
+<li><a href="#s3">s3</a></li>
+</ul></li>
+</ul>
+<h2><a id="schedulers">Schedulers</a></h2>
+<h2><a id="filesystems">File systems</a></h2>
+<h2><a id="s3">s3</a></h2>
+<p>The S3 adaptor uses Apache JClouds to talk to s3 and others. To authenticate use PasswordCredential with access key id as username and secret access key as password</p>
+<h3>Supported locations:</h3>
+Supported locations for <i>FileSystem.create(type, location, credential, properties)</i> method.<ul>
+<li>http[s]://host[:port]/bucketname[/workdir]</li>
+<li>https://s3.region.amazonaws.com/bucketname[/workdir]</li>
+</ul>
+<h3>Supported properties:</h3>
+Supported properties for <i>FileSystem.create(type, location, credential, properties)</i> method.
+<table border=1><caption>Supported properties</caption><tr><th>Name</th><th>Description</th><th>Expected type</th><th>Default</th></tr>
+<tr>
+<td><pre>xenon.adaptors.filesystems.s3.bufferSize</pre></td>
+<td>The buffer size to use when copying files (in bytes).</td>
+<td>SIZE</td>
+<td>64K</td>
+</tr>
+</table>
+<h3>Supported features</h3><ul>
+<li>Read symbolic links: false</li>
+<li>Create symbolic links: false</li>
+<li>Third party copy: false</li>
+</ul>
+</body></html>
