@@ -44,4 +44,9 @@ public class S3FileSystemSimpleTests {
     public void test_location_empty() throws XenonException {
         new S3FileAdaptor().createFileSystem("", new PasswordCredential("aap", "noot".toCharArray()), null);
     }
+
+    @Test(expected = InvalidLocationException.class)
+    public void test_location_nohost() throws XenonException {
+        new S3FileAdaptor().createFileSystem("/foo", new PasswordCredential("aap", "noot".toCharArray()), null);
+    }
 }

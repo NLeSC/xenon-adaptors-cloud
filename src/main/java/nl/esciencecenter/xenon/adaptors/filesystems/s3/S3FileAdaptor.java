@@ -53,7 +53,7 @@ public class S3FileAdaptor extends FileAdaptor {
     public static final String BUFFER_SIZE = PREFIX + "bufferSize";
 
     /** The locations supported by this adaptor */
-    private static final String[] ADAPTOR_LOCATIONS = new String[] { "[http[s]://host[:port]]/bucketname[/workdir]" };
+    private static final String[] ADAPTOR_LOCATIONS = new String[] { "http[s]://host[:port]/bucketname[/workdir]",  "https://s3.region.amazonaws.com/bucketname[/workdir]",};
 
     /** List of properties supported by this FTP adaptor */
     private static final XenonPropertyDescription[] VALID_PROPERTIES = new XenonPropertyDescription[] {
@@ -138,23 +138,20 @@ public class S3FileAdaptor extends FileAdaptor {
 
         if (credential instanceof PasswordCredential) {
             PasswordCredential pwUser = (PasswordCredential) credential;
-            context = ContextBuilder.newBuilder("s3").endpoint(server).credentials(pwUser.getUsername(), new String(pwUser.getPassword()))
-                    .buildView(BlobStoreContext.class);
+            if (server != null) {
+                boolean aws_like = server.endsWith(".amazonaws.com");
+                if (aws_like) {
+                    context = ContextBuilder.newBuilder("aws-s3").endpoint(server).credentials(pwUser.getUsername(), new String(pwUser.getPassword()))
+                        .buildView(BlobStoreContext.class);
+                } else {
+                    context = ContextBuilder.newBuilder("s3").endpoint(server).credentials(pwUser.getUsername(), new String(pwUser.getPassword()))
+                        .buildView(BlobStoreContext.class);
+                }
+            } else {
+                // jclouds has us-east-1 as default region, so if bucket is located somewhere else it errors with auth region mismatch errors
+                throw new InvalidLocationException(ADAPTOR_NAME, "Location must have hostname, eg. https://s3.eu-central-1.amazonaws.com");
+            }
         } else {
-            // Default credentials, so we do not need to set the credentials for the server
-            // context = ContextBuilder.newBuilder("s3").endpoint(server).credentials("anonymous", "javagat01").buildView(BlobStoreContext.class);
-            //
-            // System.out.println("EXISTS = " + context.getBlobStore().blobExists("minio", "filesystem-test-fixture2"));
-            //
-            // new Exception().printStackTrace(System.out);
-            //
-            // try {
-            // Thread.sleep(120);
-            // } catch (InterruptedException e) {
-            // // TODO Auto-generated catch block
-            // e.printStackTrace();
-            // }
-
             throw new InvalidCredentialException(ADAPTOR_NAME, "Default credentials not supported yet!");
         }
 
