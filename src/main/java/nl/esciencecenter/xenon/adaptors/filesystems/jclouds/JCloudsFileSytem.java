@@ -54,9 +54,6 @@ import nl.esciencecenter.xenon.filesystems.PosixFilePermission;
 // this is the same behavior as the official S3 console
 
 public class JCloudsFileSytem extends FileSystem {
-
-    private static final String NOT_EMPTY = "___not__empty___";
-
     final String bucket;
     final BlobStoreContext context;
     final String adaptorName;
@@ -118,10 +115,10 @@ public class JCloudsFileSytem extends FileSystem {
         makeDirectoryPlaceholder(absDir);
     }
 
-    // Simulate creating an empty directory by creating a bucket entry with the name "dir/___not__empty___"
+    // Simulate creating an empty directory by creating a bucket entry with the name "dir/"
     private void makeDirectoryPlaceholder(Path dir) {
-        Blob b = context.getBlobStore().blobBuilder(bucket).name(toBucketEntry(dir) + "/" + NOT_EMPTY).payload(new ByteArrayInputStream(new byte[] {}))
-                .contentLength(0).build();
+        Blob b = context.getBlobStore().blobBuilder(bucket).name(toBucketEntry(dir) + "/").payload(new ByteArrayInputStream(new byte[] {}))
+                .contentLength(0).contentType("application/x-directory").build();
         context.getBlobStore().putBlob(bucket, b);
     }
 
@@ -130,7 +127,7 @@ public class JCloudsFileSytem extends FileSystem {
         if (dir == null) {
             return;
         }
-        String existsFile = toBucketEntry(dir) + "/" + NOT_EMPTY;
+        String existsFile = toBucketEntry(dir) + "/";
         if (context.getBlobStore().blobExists(bucket, existsFile)) {
             context.getBlobStore().removeBlob(bucket, existsFile);
         }
@@ -186,9 +183,9 @@ public class JCloudsFileSytem extends FileSystem {
     protected void deleteDirectory(Path dir) throws XenonException {
         checkClosed();
         // there are two options: the directory is empty or not.
-        // in the former case the __not_empty__ file is deleted and no exception
+        // in the former case the / file is deleted and no exception
         // is thrown (correct behavior)
-        // in the latter case the __not_empty__ file is deleted and an exception
+        // in the latter case the / file is deleted and an exception
         // is thrown (correct behavior)
         if (!dirExists(dir)) {
             throw new NoSuchPathException(adaptorName, "Directory does not exist: " + dir);
@@ -315,7 +312,7 @@ public class JCloudsFileSytem extends FileSystem {
                 nxt = null;
             }
 
-            if (nxt != null && (nxt.getName().endsWith(NOT_EMPTY) || nxt.getType() == StorageType.CONTAINER || nxt.getType() == StorageType.FOLDER)) {
+            if (nxt != null && (nxt.getName().endsWith("/") || nxt.getType() == StorageType.CONTAINER || nxt.getType() == StorageType.FOLDER)) {
                 getNext();
             }
         }
