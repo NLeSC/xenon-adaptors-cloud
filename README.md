@@ -30,6 +30,9 @@ dependencies {
 
 See https://github.com/xenon-middleware/xenon/blob/master/TESTING.md
 
+Additional integration test requirements:
+ * [moto_server](https://github.com/spulec/moto), a stand-alone mocked AWS infrastructure server. Should be in PATH or location set in MOTO_SERVER environment variable.
+
 To run live test on AWS S3, first create the test fixtures listed in [create_symlinks script](https://github.com/xenon-middleware/xenon/blob/master/src/liveTest/resources/scripts/create_symlinks)
 and then run live test command:
 

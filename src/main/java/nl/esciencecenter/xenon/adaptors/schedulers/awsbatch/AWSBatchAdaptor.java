@@ -1,3 +1,18 @@
+/*
+ * Copyright 2018 Netherlands eScience Center
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package nl.esciencecenter.xenon.adaptors.schedulers.awsbatch;
 
 import java.util.Map;
@@ -5,6 +20,7 @@ import java.util.Map;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.batch.AWSBatch;
 import com.amazonaws.services.batch.AWSBatchClientBuilder;
 
@@ -28,11 +44,16 @@ public class AWSBatchAdaptor extends SchedulerAdaptor {
     /** All our own properties start with this prefix. */
     public static final String PREFIX = SchedulerAdaptor.ADAPTORS_PREFIX + ADAPTOR_NAME + ".";
 
+    /** Polling delay for jobs started by this adaptor. */
+    public static final String POLL_DELAY_PROPERTY = PREFIX + "poll.delay";
+
     /** The locations supported by this adaptor */
-    private static final String[] ADAPTOR_LOCATIONS = new String[] { "region"};
+    private static final String[] ADAPTOR_LOCATIONS = new String[] { "region", "http://hostname:port"};
 
     /** List of properties supported by this FTP adaptor */
-    private static final XenonPropertyDescription[] VALID_PROPERTIES = new XenonPropertyDescription[] {};
+    private static final XenonPropertyDescription[] VALID_PROPERTIES = new XenonPropertyDescription[] {
+        new XenonPropertyDescription(POLL_DELAY_PROPERTY, XenonPropertyDescription.Type.LONG, "5000", "Number of milliseconds between polling the status of a job.")
+    };
 
     public AWSBatchAdaptor() {
         super(ADAPTOR_NAME, ADAPTOR_DESCRIPTION, ADAPTOR_LOCATIONS, VALID_PROPERTIES);
@@ -51,7 +72,12 @@ public class AWSBatchAdaptor extends SchedulerAdaptor {
         } else {
             throw new InvalidCredentialException(ADAPTOR_NAME, "Password of Default credential required");
         }
-        AWSBatch client = builder.withRegion(location).build();
+        if (location.matches("^http://.+:[0-9]+$")) {
+            builder.setEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(location, "us-east-1"));
+        } else {
+            builder.setRegion(location);
+        }
+        AWSBatch client = builder.build();
         XenonProperties xp = new XenonProperties(VALID_PROPERTIES, properties);
         return new AWSBatchScheduler(getNewUniqueID(), ADAPTOR_NAME, location, credential, client, xp);
     }
