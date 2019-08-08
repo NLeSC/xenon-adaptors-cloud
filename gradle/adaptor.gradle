@@ -2,6 +2,10 @@ apply plugin: 'org.unbroken-dome.test-sets'
 
 group = 'nl.esciencecenter.xenon.adaptors'
 
+sourceSets {
+    docGenerator
+}
+
 testSets {
     integrationTest
     fixedClientEnvironmentTest
@@ -30,6 +34,10 @@ dependencies {
 //    fixedClientEnvironmentTestCompile group: 'nl.esciencecenter.xenon', name: 'xenon-testapi', version: xenonVersion
 
     liveTestImplementation group: 'nl.esciencecenter.xenon', name: 'xenon-livetest', version: xenonVersion
+
+    docGeneratorImplementation group: 'nl.esciencecenter.xenon', name: 'xenon-docgenerator', version: '3.0.2'
+    docGeneratorImplementation sourceSets.main.output
+    docGeneratorRuntime configurations.runtime
 }
 
 jacocoTestCoverageVerification.group = 'Code coverage reporting'
@@ -97,3 +105,20 @@ task jacocoLiveTestReport(type: JacocoReport) {
     }
 }
 
+task adaptorDocumentation(type: JavaExec) {
+    description 'Generates html snippet with options of adaptors'
+    group 'documentation'
+    main = 'nl.esciencecenter.xenon.utils.AdaptorDocGenerator'
+    File output = file("${project.docsDir}/index.html")
+    args = [output, "", "s3", "https://xenon-middleware.github.io/xenon/versions/${xenonVersion}/javadoc/"]
+    classpath = sourceSets.docGenerator.runtimeClasspath
+    outputs.file output
+}
+
+task publishSite(type: Copy) {
+    description 'Publishes artifacts to site (aka /docs/ directory)'
+    group 'Publishing'
+    dependsOn 'adaptorDocumentation'
+    from "${project.docsDir}/index.html"
+    into "docs/"
+}
