@@ -9,6 +9,7 @@ Cloud related adaptors for [xenon library](https://github.com/xenon-middleware/x
 
 Implemented adaptors:
 * s3, Xenon filesystem adaptor for [Amazon S3 blob store](https://aws.amazon.com/s3/)
+* azure, Xenon filesystem adaptor for [Azure blob store](https://azure.microsoft.com/en-us/services/storage/blobs/)
  
 ## Usage
 
@@ -28,14 +29,23 @@ dependencies {
 
 See https://github.com/xenon-middleware/xenon/blob/master/TESTING.md
 
-To run live test on AWS S3, first create the test fixtures listed in [create_symlinks script](https://github.com/xenon-middleware/xenon/blob/master/src/liveTest/resources/scripts/create_symlinks)
+To run live test on AWS S3, first create a bucket containing the test fixtures listed in [create_symlinks script](https://github.com/xenon-middleware/xenon/blob/master/src/liveTest/resources/scripts/create_symlinks)
 and then run live test command:
 
 ```sh
 ./gradlew liveTest -Dxenon.filesystem=s3 \
  -Dxenon.filesystem.location=https://s3.<region>.amazonaws.com/<bucket> \
  -Dxenon.username=<access key> -Dxenon.password=<secret key> \
- -Dxenon.basedir=/ -Dxenon.filesystem.expected.workdir=/
+ -Dxenon.filesystem.basedir=/ -Dxenon.filesystem.expected.workdir=/
+```
+
+To run the live tests on Microsoft Azure, first create a container containing the test fixtures mentioned above and run the following test command: 
+
+```sh
+./gradlew liveTest -Dxenon.filesystem=azure \
+ -Dxenon.filesystem.location=https://<user>.blob.core.windows.net/<container> \
+ -Dxenon.username=<access key> -Dxenon.password=<secret key> \
+ -Dxenon.filesystem.basedir=/ -Dxenon.filesystem.expected.workdir=/
 ```
 
 ## New release
