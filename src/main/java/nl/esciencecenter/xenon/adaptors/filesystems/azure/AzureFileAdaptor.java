@@ -35,16 +35,13 @@ import nl.esciencecenter.xenon.credentials.PasswordCredential;
 import nl.esciencecenter.xenon.filesystems.FileSystem;
 import nl.esciencecenter.xenon.filesystems.Path;
 
-/**
- * Created by atze on 29-6-17.
- */
 public class AzureFileAdaptor extends FileAdaptor {
 
     /** The name of this adaptor */
-    public static final String ADAPTOR_NAME = "azure";
+    public static final String ADAPTOR_NAME = "azureblob";
 
     /** A description of this adaptor */
-    private static final String ADAPTOR_DESCRIPTION = "The Azure adaptor uses Apache JClouds to talk to the Azure blobstore. To authenticate use PasswordCredential with access key id as username and secret access key as password";
+    private static final String ADAPTOR_DESCRIPTION = "The azureblob adaptor uses Apache JClouds to talk to the Azure blobstore. To authenticate use PasswordCredential with access key id as username and secret access key as password";
 
     /** All our own properties start with this prefix. */
     public static final String PREFIX = FileAdaptor.ADAPTORS_PREFIX + ADAPTOR_NAME + ".";
@@ -60,7 +57,7 @@ public class AzureFileAdaptor extends FileAdaptor {
             new XenonPropertyDescription(BUFFER_SIZE, Type.SIZE, "64K", "The buffer size to use when copying files (in bytes).") };
 
     public AzureFileAdaptor() {
-        super("azure", ADAPTOR_DESCRIPTION, ADAPTOR_LOCATIONS, VALID_PROPERTIES);
+        super(ADAPTOR_NAME, ADAPTOR_DESCRIPTION, ADAPTOR_LOCATIONS, VALID_PROPERTIES);
     }
 
     @Override
@@ -197,7 +194,7 @@ public class AzureFileAdaptor extends FileAdaptor {
     @SuppressWarnings("rawtypes")
     @Override
     public Class[] getSupportedCredentials() {
-        // The S3 adaptor supports these credentials
+        // The azureblob adaptor supports these credentials
         return new Class[] { PasswordCredential.class };
     }
 }

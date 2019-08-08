@@ -9,7 +9,7 @@ Cloud related adaptors for [xenon library](https://github.com/xenon-middleware/x
 
 Implemented adaptors:
 * s3, Xenon filesystem adaptor for [Amazon S3 blob store](https://aws.amazon.com/s3/)
-* azure, Xenon filesystem adaptor for [Azure blob store](https://azure.microsoft.com/en-us/services/storage/blobs/)
+* azureblob, Xenon filesystem adaptor for [Azure blob store](https://azure.microsoft.com/en-us/services/storage/blobs/)
 
 See [adaptor documentation](https://xenon-middleware.github.io/xenon-adaptors-cloud/) for what each adaptor offers and requires. 
  
@@ -56,7 +56,7 @@ Chapter is for xenon developers.
 
 The major version should be the same as the used xenon library.
 
-1. If new adaptor is added, also add it to `gradle/adaptor.gradle:adaptorDocumentation` and `META-INF/services/nl.esciencecenter.xenon.adaptors.filesystems.FileAdaptor`
+1. If new adaptor is added, also add it to `gradle/adaptor.gradle:adaptorDocumentation` and `./src/main/resources/META-INF/services/nl.esciencecenter.xenon.adaptors.filesystems.FileAdaptor`
 1. Bump version in `README.md`, `build.gradle` and `CITATION.cff`, update CHANGELOG.md and commit/push
 1. Publish to bintray with `BINTRAY_USER=*** BINTRAY_KEY=**** ./gradlew bintrayUpload`
 1. Create GitHub release

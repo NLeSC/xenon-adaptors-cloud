@@ -53,14 +53,15 @@ public class S3FileAdaptor extends FileAdaptor {
     public static final String BUFFER_SIZE = PREFIX + "bufferSize";
 
     /** The locations supported by this adaptor */
-    private static final String[] ADAPTOR_LOCATIONS = new String[] { "http[s]://host[:port]/bucketname[/workdir]",  "https://s3.region.amazonaws.com/bucketname[/workdir]",};
+    private static final String[] ADAPTOR_LOCATIONS = new String[] { "http[s]://host[:port]/bucketname[/workdir]",
+            "https://s3.region.amazonaws.com/bucketname[/workdir]", };
 
     /** List of properties supported by this FTP adaptor */
     private static final XenonPropertyDescription[] VALID_PROPERTIES = new XenonPropertyDescription[] {
             new XenonPropertyDescription(BUFFER_SIZE, Type.SIZE, "64K", "The buffer size to use when copying files (in bytes).") };
 
     public S3FileAdaptor() {
-        super("s3", ADAPTOR_DESCRIPTION, ADAPTOR_LOCATIONS, VALID_PROPERTIES);
+        super(ADAPTOR_NAME, ADAPTOR_DESCRIPTION, ADAPTOR_LOCATIONS, VALID_PROPERTIES);
     }
 
     @Override
@@ -142,10 +143,10 @@ public class S3FileAdaptor extends FileAdaptor {
                 boolean aws_like = server.endsWith(".amazonaws.com");
                 if (aws_like) {
                     context = ContextBuilder.newBuilder("aws-s3").endpoint(server).credentials(pwUser.getUsername(), new String(pwUser.getPassword()))
-                        .buildView(BlobStoreContext.class);
+                            .buildView(BlobStoreContext.class);
                 } else {
                     context = ContextBuilder.newBuilder("s3").endpoint(server).credentials(pwUser.getUsername(), new String(pwUser.getPassword()))
-                        .buildView(BlobStoreContext.class);
+                            .buildView(BlobStoreContext.class);
                 }
             } else {
                 // jclouds has us-east-1 as default region, so if bucket is located somewhere else it errors with auth region mismatch errors
