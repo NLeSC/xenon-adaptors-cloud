@@ -129,10 +129,11 @@ public class AWSBatchScheduler extends Scheduler {
             com.amazonaws.services.batch.model.JobStatus.SUCCEEDED,
             com.amazonaws.services.batch.model.JobStatus.FAILED
         );
-        for (String queueName: queueNames) {
+        Set<String> jobQueueNames = Arrays.stream(queueNames).map(q -> q.split(AWSBatchUtils.QUEUE_SEPARATOR)[1]).collect(Collectors.toSet());
+        for (String jobQueueName: jobQueueNames) {
             for (com.amazonaws.services.batch.model.JobStatus statusFilter : statusFilters) {
                 ListJobsResult result = client.listJobs(
-                    new ListJobsRequest().withJobStatus(statusFilter).withJobQueue(queueName)
+                    new ListJobsRequest().withJobStatus(statusFilter).withJobQueue(jobQueueName)
                 );
                 List<String> qJobs = result.getJobSummaryList().stream()
                     .map(JobSummary::getJobId).collect(Collectors.toList());
@@ -165,7 +166,12 @@ public class AWSBatchScheduler extends Scheduler {
         if (queueNames == null) {
             throw new IllegalArgumentException("Queue name can not be null");
         }
-        Supplier<Stream<String[]>> qstream = () -> List.of(queueNames).stream().map(q -> q.split(AWSBatchUtils.QUEUE_SEPARATOR));
+        if (queueNames.length == 0) {
+            // use all queues when no selection is given
+            queueNames = getQueueNames();
+        }
+        List<String> finalQueueNameList = List.of(queueNames);
+        Supplier<Stream<String[]>> qstream = () -> finalQueueNameList.stream().map(q -> q.split(AWSBatchUtils.QUEUE_SEPARATOR));
         Set<String> defs2fetch = qstream.get().map(q -> q[0].split(JOBDEFINITION_SEPARATOR)[0]).collect(Collectors.toSet());
         Set<String> queues2fetch = qstream.get().map(q -> q[1]).collect(Collectors.toSet());
 
@@ -215,6 +221,10 @@ public class AWSBatchScheduler extends Scheduler {
 
     @Override
     public JobStatus cancelJob(String jobIdentifier) throws XenonException {
+        JobStatus status = getJobStatus(jobIdentifier);
+        if (status.isDone()) {
+            return status;
+        }
         client.terminateJob(new TerminateJobRequest().withJobId(jobIdentifier).withReason("Cancelled by Xenon cancelJob call"));
         return getJobStatus(jobIdentifier);
     }
@@ -258,7 +268,6 @@ public class AWSBatchScheduler extends Scheduler {
 
             status = getJobStatus(jobIdentifier);
         }
-
         return status;
     }
 
