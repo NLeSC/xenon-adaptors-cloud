@@ -19,7 +19,7 @@ matrix:
           organization: nlesc
       before_install:
         - docker-compose --version
-        - pip install moto[server]
+        - pip3.7 install moto[server]
       install:
         - ./gradlew assemble
       script:
