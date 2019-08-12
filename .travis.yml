@@ -18,9 +18,7 @@ matrix:
       before_install:
         - docker-compose --version
         - source ~/virtualenv/python3.7/bin/activate
-        - python --version
-        - pip --version
-        - pip --user install moto[server]
+        - pip install moto[server]
       install:
         - ./gradlew assemble
       script:
