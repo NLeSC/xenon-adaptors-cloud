@@ -4,8 +4,6 @@ matrix:
   include:
     - os: linux
       jdk: openjdk11
-      python:
-        - "3.7"
       env:
         - INTEGRATION_TEST="integration"
         - JDK=openjdk11
@@ -19,7 +17,7 @@ matrix:
           organization: nlesc
       before_install:
         - docker-compose --version
-        - pip3.7 install moto[server]
+        - pip3.7.1 --user install moto[server]
       install:
         - ./gradlew assemble
       script:
