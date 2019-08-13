@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.batch.model.ArrayProperties;
 import com.amazonaws.services.batch.model.ContainerDetail;
 import com.amazonaws.services.batch.model.ContainerOverrides;
 import com.amazonaws.services.batch.model.JobDefinition;
@@ -40,6 +41,7 @@ import com.amazonaws.services.logs.model.OutputLogEvent;
 import nl.esciencecenter.xenon.XenonException;
 import nl.esciencecenter.xenon.adaptors.schedulers.JobStatusImplementation;
 import nl.esciencecenter.xenon.adaptors.schedulers.QueueStatusImplementation;
+import nl.esciencecenter.xenon.schedulers.InvalidJobDescriptionException;
 import nl.esciencecenter.xenon.schedulers.JobDescription;
 import nl.esciencecenter.xenon.schedulers.JobStatus;
 import nl.esciencecenter.xenon.schedulers.QueueStatus;
@@ -122,9 +124,12 @@ public class AWSBatchUtils {
         }
     }
 
-    static SubmitJobRequest mapToSubmitJobRequest(JobDescription description, String jobQueue, String jobDefinition) {
+    static SubmitJobRequest mapToSubmitJobRequest(JobDescription description, String jobQueue, String jobDefinition) throws InvalidJobDescriptionException {
         ContainerOverrides containerOverride = new ContainerOverrides();
         List<String> command = new ArrayList<>();
+        if (description.getTempSpace() != -1) {
+            throw new InvalidJobDescriptionException("awsbatch", "AWS Batch can not guarantee free temporary space is available");
+        }
         if (description.getExecutable() != null) {
             command.add(description.getExecutable());
             command.addAll(description.getArguments());
@@ -136,16 +141,28 @@ public class AWSBatchUtils {
         if (!description.getEnvironment().isEmpty()) {
             containerOverride.setEnvironment(mapEnvironment(description.getEnvironment()));
         }
-//        if (description.getCoresPerTask() != 1 ) {
-//            // TODO correct?
-//            containerOverride.setVcpus(description.getCoresPerTask());
-//        }
-
         SubmitJobRequest submitJobRequest = new SubmitJobRequest()
             .withJobDefinition(jobDefinition)
             .withJobQueue(jobQueue)
             .withContainerOverrides(containerOverride)
-        ;
+            ;
+
+        if (description.getTasksPerNode() > 1) {
+            throw new InvalidJobDescriptionException("awsbatch", "AWS Batch can not run multiple tasks per node");
+        }
+        if (description.getTasks() > 1) {
+            if (description.isStartPerTask()) {
+                throw new InvalidJobDescriptionException("awsbatch", "AWS Batch can not run multiple tasks per node");
+            } else {
+                // Job executable must used AWS_BATCH_JOB_ARRAY_INDEX env var to do something different on each node
+                ArrayProperties arrayProperties = new ArrayProperties().withSize(description.getTasks());
+                submitJobRequest.withArrayProperties(arrayProperties);
+            }
+        }
+        if (description.getCoresPerTask() != 1 ) {
+            containerOverride.setVcpus(description.getCoresPerTask());
+        }
+
         if (description.getName() != null) {
             submitJobRequest.setJobName(description.getName());
         } else {
@@ -155,7 +172,16 @@ public class AWSBatchUtils {
         if (description.getMaxRuntime() != -1) {
             submitJobRequest.setTimeout(new JobTimeout().withAttemptDurationSeconds(description.getMaxRuntime() * 60));
         }
-        // TODO map description.getSchedulerArguments() to parameters?
+        // The following AWS Batch job request fields are not supported:
+        // - parameters
+        // - nr of job attempts
+        // - job depends on some jobId
+        // - sequential and n to n dependencies for array jobs
+        // - number of GPUs
+        // - container overrides besides command, environment, memory and vcpus
+        // - nodeOverrides
+        // They could be parsed from
+        // List<String> schedulerArguments = description.getSchedulerArguments();
         return submitJobRequest;
     }
 
@@ -177,8 +203,9 @@ public class AWSBatchUtils {
         String region = getRegionFromArn(status.getSchedulerSpecificInformation().get("taskArn"));
         AWSLogs lclient = AWSLogsClient.builder().withCredentials(credProv).withRegion(region).build();
         String logStreamName = status.getSchedulerSpecificInformation().get("logStreamName");
-        OutputLogEvent log = lclient.getLogEvents(new GetLogEventsRequest().withLogGroupName("/aws/batch/job").withLogStreamName(logStreamName)).getEvents().get(0);
+        List<OutputLogEvent> events = lclient.getLogEvents(new GetLogEventsRequest().withLogGroupName("/aws/batch/job").withLogStreamName(logStreamName)).getEvents();
+        String log = events.stream().map(OutputLogEvent::getMessage).collect(Collectors.joining(System.lineSeparator()));
         lclient.shutdown();
-        return log.getMessage();
+        return log;
     }
 }
