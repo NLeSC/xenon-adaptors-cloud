@@ -23,8 +23,7 @@ matrix:
       install:
         - ./gradlew assemble
       script:
-        - moto_server --help
-        - ./gradlew --debug check
+        - ./gradlew check
       after_script:
         - ./gradlew jacocoIntegrationTestReport
         - bash <(curl -s https://codecov.io/bash) -e JDK,OS -F unit -f build/reports/jacoco/test/jacocoTestReport.xml;
