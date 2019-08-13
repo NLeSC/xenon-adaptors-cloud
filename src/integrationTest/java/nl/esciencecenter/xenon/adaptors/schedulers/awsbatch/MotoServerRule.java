@@ -66,7 +66,7 @@ public class MotoServerRule extends ExternalResource {
             throw new MotoServerException("Failed to execute `" + cmd + "`, required for AWS Batch integration tests, install with `pip3 install moto[server]` or define location with MOTO_SERVER env var", e);
         }
         // Once moto server prints something it is ready
-        byte[] b = new byte[55];
+        byte[] b = new byte[255];
         proc.getErrorStream().read(b);
         LOGGER.debug(new String(b, StandardCharsets.UTF_8));
         // Capture stdout/stderr of moto server and send to logger after test is completed
