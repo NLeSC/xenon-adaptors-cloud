@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.batch.model.ContainerDetail;
 import com.amazonaws.services.batch.model.ContainerOverrides;
 import com.amazonaws.services.batch.model.JobDefinition;
@@ -30,6 +32,10 @@ import com.amazonaws.services.batch.model.JobQueueDetail;
 import com.amazonaws.services.batch.model.JobTimeout;
 import com.amazonaws.services.batch.model.KeyValuePair;
 import com.amazonaws.services.batch.model.SubmitJobRequest;
+import com.amazonaws.services.logs.AWSLogs;
+import com.amazonaws.services.logs.AWSLogsClient;
+import com.amazonaws.services.logs.model.GetLogEventsRequest;
+import com.amazonaws.services.logs.model.OutputLogEvent;
 
 import nl.esciencecenter.xenon.XenonException;
 import nl.esciencecenter.xenon.adaptors.schedulers.JobStatusImplementation;
@@ -88,6 +94,8 @@ public class AWSBatchUtils {
             }
             info.put("image", container.getImage());
             info.put("logStreamName", container.getLogStreamName());
+            info.put("containerInstanceArn", container.getContainerInstanceArn());
+            info.put("taskArn", container.getTaskArn());
         }
         info.put("createdAt", String.valueOf(jobResult.getCreatedAt()));
         info.put("stoppedAt", String.valueOf(jobResult.getStartedAt()));
@@ -97,6 +105,11 @@ public class AWSBatchUtils {
         info.put("queue", jobResult.getJobQueue());
         // TODO add more fields from jobResult to info
         return new JobStatusImplementation(jobResult.getJobId(), jobResult.getJobName(), awsJobStatus.toString(), exitCode, exception, running, done, info);
+    }
+
+    private static String getRegionFromArn(String arn) {
+        // ARN format = arn:aws:<vendor>:<region>:<namespace>:<relative-id>
+        return arn.split(":")[3];
     }
 
     static boolean sleep(long pollDelay) {
@@ -109,10 +122,7 @@ public class AWSBatchUtils {
         }
     }
 
-    static SubmitJobRequest mapToSubmitJobRequest(AWSBatchScheduler awsBatchScheduler, JobDescription description, QueueStatus status) {
-        String jobDefinition = status.getSchedulerSpecificInformation().get("definition.arn");
-        String jobQueue = status.getSchedulerSpecificInformation().get("queue.arn");
-
+    static SubmitJobRequest mapToSubmitJobRequest(JobDescription description, String jobQueue, String jobDefinition) {
         ContainerOverrides containerOverride = new ContainerOverrides();
         List<String> command = new ArrayList<>();
         if (description.getExecutable() != null) {
@@ -145,10 +155,30 @@ public class AWSBatchUtils {
         if (description.getMaxRuntime() != -1) {
             submitJobRequest.setTimeout(new JobTimeout().withAttemptDurationSeconds(description.getMaxRuntime() * 60));
         }
+        // TODO map description.getSchedulerArguments() to parameters?
         return submitJobRequest;
     }
 
     private static Collection<KeyValuePair> mapEnvironment(Map<String, String> environment) {
         return environment.entrySet().stream().map(e -> new KeyValuePair().withName(e.getKey()).withValue(e.getValue())).collect(Collectors.toList());
+    }
+
+    /**
+     * Retrieves the log of a done AWS Batch job from AWS Cloudwatch
+     *
+     * @param status Status of an AWS Batch job, the job should be done (status.isDone() == true)
+     * @param accessKey Access key used for AWS Cloudwatch logs client
+     * @param secretKey Secret key used for AWS Cloudwatch logs client
+     * @return Log of job
+     */
+    public static String getLog(JobStatus status, String accessKey, String secretKey) {
+        AWSStaticCredentialsProvider credProv = new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKey, secretKey));
+        // Use same region as the where the task was run
+        String region = getRegionFromArn(status.getSchedulerSpecificInformation().get("taskArn"));
+        AWSLogs lclient = AWSLogsClient.builder().withCredentials(credProv).withRegion(region).build();
+        String logStreamName = status.getSchedulerSpecificInformation().get("logStreamName");
+        OutputLogEvent log = lclient.getLogEvents(new GetLogEventsRequest().withLogGroupName("/aws/batch/job").withLogStreamName(logStreamName)).getEvents().get(0);
+        lclient.shutdown();
+        return log.getMessage();
     }
 }
