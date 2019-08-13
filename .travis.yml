@@ -17,6 +17,7 @@ matrix:
           organization: nlesc
       before_install:
         - docker-compose --version
+        - export BOTO_CONFIG=/dev/null
         - source ~/virtualenv/python3.7/bin/activate
         - pip install moto[server]
       install:
