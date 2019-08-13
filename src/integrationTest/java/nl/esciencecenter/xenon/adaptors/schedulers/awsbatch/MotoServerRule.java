@@ -17,6 +17,7 @@ package nl.esciencecenter.xenon.adaptors.schedulers.awsbatch;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.nio.charset.StandardCharsets;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -65,7 +66,9 @@ public class MotoServerRule extends ExternalResource {
             throw new MotoServerException("Failed to execute `" + cmd + "`, required for AWS Batch integration tests, install with `pip3 install moto[server]` or define location with MOTO_SERVER env var", e);
         }
         // Once moto server prints something it is ready
-        LOGGER.debug(String.valueOf(proc.getErrorStream().read()));
+        byte[] b = new byte[55];
+        proc.getErrorStream().read(b);
+        LOGGER.debug(new String(b, StandardCharsets.UTF_8));
         // Capture stdout/stderr of moto server and send to logger after test is completed
         stderr = new OutputReader(proc.getErrorStream());
         stdout = new OutputReader(proc.getInputStream());
@@ -110,6 +113,7 @@ public class MotoServerRule extends ExternalResource {
     @Override
     protected void after() {
         super.after();
+        LOGGER.debug("Stopping moto server");
         proc.destroyForcibly();
         LOGGER.debug(stderr.getResultAsString());
         LOGGER.debug(stdout.getResultAsString());
