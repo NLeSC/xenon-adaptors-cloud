@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+## Added
+
+* AWS Batch scheduler ([#10](https://github.com/xenon-middleware/xenon-adaptors-cloud/issues/10))
+
 ## [3.0.2] - 2019-08-07
 
 ### Added

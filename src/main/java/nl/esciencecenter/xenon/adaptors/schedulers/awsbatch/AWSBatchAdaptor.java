@@ -39,7 +39,11 @@ public class AWSBatchAdaptor extends SchedulerAdaptor {
     public static final String ADAPTOR_NAME = "awsbatch";
 
     /** A description of this adaptor */
-    private static final String ADAPTOR_DESCRIPTION = "The S3 adaptor uses Apache JClouds to talk to s3 and others. To authenticate use PasswordCredential with access key id as username and secret access key as password";
+    private static final String ADAPTOR_DESCRIPTION = "The AWS Batch adaptor can submit jobs to AWS Batch service. " +
+        "To authenticate use PasswordCredential with access key id as username and secret access key as password. " +
+        "Adaptor expects job queues and job definitions to have been created before use. " +
+        "The scheduler queues are combinations of AWS Batch job definitions and AWS Batch job queues. " +
+        "Logs of jobs are available in the AWS CloudWatch logs service and can be optionally fetched using the AWSBatchUtils.getLog method.";
 
     /** All our own properties start with this prefix. */
     public static final String PREFIX = SchedulerAdaptor.ADAPTORS_PREFIX + ADAPTOR_NAME + ".";
@@ -50,7 +54,7 @@ public class AWSBatchAdaptor extends SchedulerAdaptor {
     /** The locations supported by this adaptor */
     private static final String[] ADAPTOR_LOCATIONS = new String[] { "region", "http://hostname:port"};
 
-    /** List of properties supported by this FTP adaptor */
+    /** List of properties supported by this AWS Batch adaptor */
     private static final XenonPropertyDescription[] VALID_PROPERTIES = new XenonPropertyDescription[] {
         new XenonPropertyDescription(POLL_DELAY_PROPERTY, XenonPropertyDescription.Type.LONG, "5000", "Number of milliseconds between polling the status of a job.")
     };
