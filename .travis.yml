@@ -22,7 +22,7 @@ matrix:
       install:
         - ./gradlew assemble
       script:
-        - moto_server--help
+        - moto_server --help
         - ./gradlew --debug check
       after_script:
         - ./gradlew jacocoIntegrationTestReport
