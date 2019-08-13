@@ -194,7 +194,10 @@ public class AWSBatchScheduler extends Scheduler {
         }
         // Moto accepts arns, but rejects names so translate names to arns
         QueueStatus queue = getQueueStatus(fullQueueName);
-        SubmitJobRequest submitJobRequest = AWSBatchUtils.mapToSubmitJobRequest(this, description, queue);
+        String jobDefinition = queue.getSchedulerSpecificInformation().get("definition.arn");
+        String jobQueue = queue.getSchedulerSpecificInformation().get("queue.arn");
+
+        SubmitJobRequest submitJobRequest = AWSBatchUtils.mapToSubmitJobRequest(description, jobQueue, jobDefinition);
 
         SubmitJobResult result = client.submitJob(submitJobRequest);
         return result.getJobId();

@@ -39,13 +39,17 @@ import org.junit.rules.ExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import nl.esciencecenter.xenon.utils.OutputReader;
+
 public class MotoServerRule extends ExternalResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(MotoServerRule.class);
     private Process proc;
     private int port;
+    private OutputReader stderr;
+    private OutputReader stdout;
 
     @Override
-    protected void before() throws Throwable {
+    protected void before() throws IOException, MotoServerException {
         try (ServerSocket socket = new ServerSocket(0)) {
             port = socket.getLocalPort();
         }
@@ -60,8 +64,11 @@ public class MotoServerRule extends ExternalResource {
         } catch (IOException e) {
             throw new MotoServerException("Failed to execute `" + cmd + "`, required for AWS Batch integration tests, install with `pip3 install moto[server]` or define location with MOTO_SERVER env var", e);
         }
-        // TODO do not swallow output, pipe stdout/stder of moto_server to logger
-        proc.getErrorStream().read();
+        // Once moto server prints something it is ready
+        LOGGER.debug(String.valueOf(proc.getErrorStream().read()));
+        // Capture stdout/stderr of moto server and send to logger after test is completed
+        stderr = new OutputReader(proc.getErrorStream());
+        stdout = new OutputReader(proc.getInputStream());
 
         AWSStaticCredentialsProvider cred = new AWSStaticCredentialsProvider(new BasicAWSCredentials("someaccesskey", "somesecretkey"));
         AwsClientBuilder.EndpointConfiguration endpoint = new AwsClientBuilder.EndpointConfiguration(getEndpoint(), "us-east-1");
@@ -104,6 +111,8 @@ public class MotoServerRule extends ExternalResource {
     protected void after() {
         super.after();
         proc.destroyForcibly();
+        LOGGER.debug(stderr.getResultAsString());
+        LOGGER.debug(stdout.getResultAsString());
     }
 
     String getEndpoint() {
