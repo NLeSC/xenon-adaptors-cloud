@@ -12,6 +12,7 @@ The main entry points are<ul>
 </ul></li>
 <li><a href="#filesystems">File systems</a><ul>
 <li><a href="#s3">s3</a></li>
+<li><a href="#azureblob">azureblob</a></li>
 </ul></li>
 </ul>
 <h2><a id="schedulers">Schedulers</a></h2>
@@ -51,6 +52,27 @@ Supported properties for <i>FileSystem.create(type, location, credential, proper
 <table border=1><caption>Supported properties</caption><tr><th>Name</th><th>Description</th><th>Expected type</th><th>Default</th></tr>
 <tr>
 <td><pre>xenon.adaptors.filesystems.s3.bufferSize</pre></td>
+<td>The buffer size to use when copying files (in bytes).</td>
+<td>SIZE</td>
+<td>64K</td>
+</tr>
+</table>
+<h3>Supported features</h3><ul>
+<li>Read symbolic links: false</li>
+<li>Create symbolic links: false</li>
+<li>Third party copy: false</li>
+</ul>
+<h2><a id="azureblob">azureblob</a></h2>
+<p>The azureblob adaptor uses Apache JClouds to talk to the Azure blobstore. To authenticate use PasswordCredential with access key id as username and secret access key as password</p>
+<h3>Supported locations:</h3>
+Supported locations for <i>FileSystem.create(type, location, credential, properties)</i> method.<ul>
+<li>http[s]://<account-name>.blob.core.windows.net/<container>[/workdir]</li>
+</ul>
+<h3>Supported properties:</h3>
+Supported properties for <i>FileSystem.create(type, location, credential, properties)</i> method.
+<table border=1><caption>Supported properties</caption><tr><th>Name</th><th>Description</th><th>Expected type</th><th>Default</th></tr>
+<tr>
+<td><pre>xenon.adaptors.filesystems.azureblob.bufferSize</pre></td>
 <td>The buffer size to use when copying files (in bytes).</td>
 <td>SIZE</td>
 <td>64K</td>

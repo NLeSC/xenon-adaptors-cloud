@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.esciencecenter.xenon.adaptors.filesystems.s3;
+package nl.esciencecenter.xenon.adaptors.filesystems.azure;
 
 import java.net.URI;
 import java.util.Map;
@@ -35,16 +35,13 @@ import nl.esciencecenter.xenon.credentials.PasswordCredential;
 import nl.esciencecenter.xenon.filesystems.FileSystem;
 import nl.esciencecenter.xenon.filesystems.Path;
 
-/**
- * Created by atze on 29-6-17.
- */
-public class S3FileAdaptor extends FileAdaptor {
+public class AzureFileAdaptor extends FileAdaptor {
 
     /** The name of this adaptor */
-    public static final String ADAPTOR_NAME = "s3";
+    public static final String ADAPTOR_NAME = "azureblob";
 
     /** A description of this adaptor */
-    private static final String ADAPTOR_DESCRIPTION = "The S3 adaptor uses Apache JClouds to talk to s3 and others. To authenticate use PasswordCredential with access key id as username and secret access key as password";
+    private static final String ADAPTOR_DESCRIPTION = "The azureblob adaptor uses Apache JClouds to talk to the Azure blobstore. To authenticate use PasswordCredential with access key id as username and secret access key as password";
 
     /** All our own properties start with this prefix. */
     public static final String PREFIX = FileAdaptor.ADAPTORS_PREFIX + ADAPTOR_NAME + ".";
@@ -53,29 +50,43 @@ public class S3FileAdaptor extends FileAdaptor {
     public static final String BUFFER_SIZE = PREFIX + "bufferSize";
 
     /** The locations supported by this adaptor */
-    private static final String[] ADAPTOR_LOCATIONS = new String[] { "http[s]://host[:port]/bucketname[/workdir]",
-            "https://s3.region.amazonaws.com/bucketname[/workdir]", };
+    private static final String[] ADAPTOR_LOCATIONS = new String[] { "http[s]://<account-name>.blob.core.windows.net/<container>[/workdir]" };
 
-    /** List of properties supported by this FTP adaptor */
+    /** List of properties supported by this Azure adaptor */
     private static final XenonPropertyDescription[] VALID_PROPERTIES = new XenonPropertyDescription[] {
             new XenonPropertyDescription(BUFFER_SIZE, Type.SIZE, "64K", "The buffer size to use when copying files (in bytes).") };
 
-    public S3FileAdaptor() {
+    public AzureFileAdaptor() {
         super(ADAPTOR_NAME, ADAPTOR_DESCRIPTION, ADAPTOR_LOCATIONS, VALID_PROPERTIES);
     }
 
     @Override
     public FileSystem createFileSystem(String location, Credential credential, Map<String, String> properties) throws XenonException {
 
-        // An S3 URI has the form:
+        // An Azure URI has the form:
         //
-        // [http://host[:port]]/bucketname[/workdir]
+        // http[s]://<account-name>.blob.core.windows.net/<container>[/workdir]
         //
-        // Note that it may only contain a bucketname (in which case it connects to amazon AWS automatically), or it may contain a server adres and bucketname.
-        // In both cases, an optional workdir may be provided after the bucketname.
+        // Note that the <container> may be empty, in which case the root container is used. The root container can also be explicitly addressed using:
+        //
+        // http[s]://<account-name>.blob.core.windows.net/$root[/workdir]
+        //
+        // Note that accessing the 'root' of a container does not seem to work, for example accessing:
+        //
+        // https://xenontest.blob.core.windows.net/testcontainer/
+        //
+        // results in an error, while accessing
+        //
+        // https://xenontest.blob.core.windows.net/testcontainer/test
+        //
+        // works fine.
 
         if (location == null || location.isEmpty()) {
             throw new InvalidLocationException(ADAPTOR_NAME, "Location may not be empty");
+        }
+
+        if (!(location.startsWith("http://") || location.startsWith("https://"))) {
+            throw new InvalidLocationException(ADAPTOR_NAME, "Location must start with http[s]:// " + location);
         }
 
         if (credential == null) {
@@ -86,29 +97,35 @@ public class S3FileAdaptor extends FileAdaptor {
             throw new InvalidCredentialException(ADAPTOR_NAME, "Credential type not supported");
         }
 
+        XenonProperties xp = new XenonProperties(VALID_PROPERTIES, properties);
+
+        long bufferSize = xp.getSizeProperty(BUFFER_SIZE);
+
+        if (bufferSize <= 0 || bufferSize >= Integer.MAX_VALUE) {
+            throw new InvalidPropertyException(ADAPTOR_NAME,
+                    "Invalid value for " + BUFFER_SIZE + ": " + bufferSize + " (must be between 1 and " + Integer.MAX_VALUE + ")");
+        }
+
         String server = null;
         String bucket = null;
         String bucketPath = null;
         Path path = null;
 
-        if (location.startsWith("http://") || location.startsWith("https://")) {
-            URI uri;
+        URI uri;
 
-            try {
-                uri = new URI(location);
-            } catch (Exception e) {
-                throw new InvalidLocationException(ADAPTOR_NAME, "Failed to parse location: " + location, e);
-            }
-
-            // Reconstruct the server address
-            server = uri.getScheme() + "://" + uri.getHost() + (uri.getPort() != -1 ? ":" + uri.getPort() : "");
-            bucketPath = uri.getPath();
-        } else {
-            bucketPath = location;
+        try {
+            uri = new URI(location);
+        } catch (Exception e) {
+            throw new InvalidLocationException(ADAPTOR_NAME, "Failed to parse location: " + location, e);
         }
 
+        // Reconstruct the server address
+        server = uri.getScheme() + "://" + uri.getHost() + (uri.getPort() != -1 ? ":" + uri.getPort() : "");
+        bucketPath = uri.getPath();
+
         if (bucketPath == null || bucketPath.isEmpty() || bucketPath.equals("/")) {
-            throw new InvalidLocationException(ADAPTOR_NAME, "Location does not contain bucket: " + location);
+            // throw new InvalidLocationException(ADAPTOR_NAME, "Location does not contain bucket: " + location);
+            bucketPath = "/";
         }
 
         if (bucketPath.startsWith("/")) {
@@ -126,35 +143,10 @@ public class S3FileAdaptor extends FileAdaptor {
             path = new Path('/', bucketPath.substring(split));
         }
 
-        XenonProperties xp = new XenonProperties(VALID_PROPERTIES, properties);
+        PasswordCredential pwUser = (PasswordCredential) credential;
 
-        long bufferSize = xp.getSizeProperty(BUFFER_SIZE);
-
-        if (bufferSize <= 0 || bufferSize >= Integer.MAX_VALUE) {
-            throw new InvalidPropertyException(ADAPTOR_NAME,
-                    "Invalid value for " + BUFFER_SIZE + ": " + bufferSize + " (must be between 1 and " + Integer.MAX_VALUE + ")");
-        }
-
-        BlobStoreContext context = null;
-
-        if (credential instanceof PasswordCredential) {
-            PasswordCredential pwUser = (PasswordCredential) credential;
-            if (server != null) {
-                boolean aws_like = server.endsWith(".amazonaws.com");
-                if (aws_like) {
-                    context = ContextBuilder.newBuilder("aws-s3").endpoint(server).credentials(pwUser.getUsername(), new String(pwUser.getPassword()))
-                            .buildView(BlobStoreContext.class);
-                } else {
-                    context = ContextBuilder.newBuilder("s3").endpoint(server).credentials(pwUser.getUsername(), new String(pwUser.getPassword()))
-                            .buildView(BlobStoreContext.class);
-                }
-            } else {
-                // jclouds has us-east-1 as default region, so if bucket is located somewhere else it errors with auth region mismatch errors
-                throw new InvalidLocationException(ADAPTOR_NAME, "Location must have hostname, eg. https://s3.eu-central-1.amazonaws.com");
-            }
-        } else {
-            throw new InvalidCredentialException(ADAPTOR_NAME, "Default credentials not supported yet!");
-        }
+        BlobStoreContext context = ContextBuilder.newBuilder("azureblob").endpoint(server).credentials(pwUser.getUsername(), new String(pwUser.getPassword()))
+                .buildView(BlobStoreContext.class);
 
         return new JCloudsFileSytem(getNewUniqueID(), ADAPTOR_NAME, server, credential, path, context, bucket, (int) bufferSize, xp);
     }
@@ -202,7 +194,7 @@ public class S3FileAdaptor extends FileAdaptor {
     @SuppressWarnings("rawtypes")
     @Override
     public Class[] getSupportedCredentials() {
-        // The S3 adaptor supports these credentials
+        // The azureblob adaptor supports these credentials
         return new Class[] { PasswordCredential.class };
     }
 }

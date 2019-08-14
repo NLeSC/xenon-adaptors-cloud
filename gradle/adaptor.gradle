@@ -109,7 +109,7 @@ task adaptorDocumentation(type: JavaExec) {
     group 'documentation'
     main = 'nl.esciencecenter.xenon.utils.AdaptorDocGenerator'
     File output = file("${project.docsDir}/index.html")
-    args = [output, "awsbatch", "s3", "https://xenon-middleware.github.io/xenon/versions/${xenonVersion}/javadoc/"]
+    args = [output, "awsbatch", "s3,azureblob", "https://xenon-middleware.github.io/xenon/versions/${xenonVersion}/javadoc/"]
     classpath = sourceSets.main.runtimeClasspath + sourceSets.docGenerator.runtimeClasspath
     outputs.file output
 }
