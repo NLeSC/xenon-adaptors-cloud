@@ -130,6 +130,9 @@ public class AWSBatchUtils {
         if (description.getTempSpace() != -1) {
             throw new InvalidJobDescriptionException("awsbatch", "AWS Batch can not guarantee free temporary space is available");
         }
+        if (description.getExecutable() == null && description.getArguments().size() > 0) {
+            throw new InvalidJobDescriptionException("awsbatch", "AWS Batch submission can not have arguments without an executable");
+        }
         if (description.getExecutable() != null) {
             command.add(description.getExecutable());
             command.addAll(description.getArguments());

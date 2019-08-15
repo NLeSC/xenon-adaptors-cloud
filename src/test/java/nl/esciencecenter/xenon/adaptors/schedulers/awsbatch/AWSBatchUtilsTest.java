@@ -142,4 +142,16 @@ public class AWSBatchUtilsTest {
 
         mapToSubmitJobRequest(description, "jobqueue1", "computedefinition1");
     }
+
+    @Test
+    public void mapToSubmitJobRequest_argumentswithoutexecutable() throws InvalidJobDescriptionException {
+        exceptionRule.expect(InvalidJobDescriptionException.class);
+        exceptionRule.expectMessage("awsbatch");
+        exceptionRule.expectMessage("AWS Batch submission can not have arguments without an executable");
+
+        JobDescription description = new JobDescription();
+        description.setArguments("arg1");
+
+        mapToSubmitJobRequest(description, "jobqueue1", "computedefinition1");
+    }
 }
