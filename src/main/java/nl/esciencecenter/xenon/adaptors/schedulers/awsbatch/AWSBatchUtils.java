@@ -198,15 +198,6 @@ public class AWSBatchUtils {
         if (description.getMaxRuntime() != -1) {
             submitJobRequest.setTimeout(new JobTimeout().withAttemptDurationSeconds(description.getMaxRuntime() * 60));
         }
-        // The following AWS Batch job request fields are not supported:
-        // - nr of job attempts
-        // - job depends on some jobId
-        // - sequential and n to n dependencies for array jobs
-        // - number of GPUs
-        // - container overrides besides command, environment, memory and vcpus
-        // - nodeOverrides
-        // They could be parsed from
-        // List<String> schedulerArguments = description.getSchedulerArguments();
         return submitJobRequest;
     }
 
