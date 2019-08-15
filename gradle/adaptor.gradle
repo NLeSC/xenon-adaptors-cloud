@@ -37,8 +37,6 @@ dependencies {
     liveTestImplementation group: 'nl.esciencecenter.xenon', name: 'xenon-livetest', version: xenonVersion
 
     docGeneratorImplementation group: 'nl.esciencecenter.xenon', name: 'xenon-docgenerator', version: '3.0.2'
-    docGeneratorImplementation sourceSets.main.output
-    docGeneratorRuntime configurations.runtime
 }
 
 jacocoTestCoverageVerification.group = 'Code coverage reporting'
@@ -111,8 +109,8 @@ task adaptorDocumentation(type: JavaExec) {
     group 'documentation'
     main = 'nl.esciencecenter.xenon.utils.AdaptorDocGenerator'
     File output = file("${project.docsDir}/index.html")
-    args = [output, "awsbatch", "s3", "https://xenon-middleware.github.io/xenon/versions/${xenonVersion}/javadoc/"]
-    classpath = sourceSets.docGenerator.runtimeClasspath
+    args = [output, "awsbatch", "s3,azureblob", "https://xenon-middleware.github.io/xenon/versions/${xenonVersion}/javadoc/"]
+    classpath = sourceSets.main.runtimeClasspath + sourceSets.docGenerator.runtimeClasspath
     outputs.file output
 }
 

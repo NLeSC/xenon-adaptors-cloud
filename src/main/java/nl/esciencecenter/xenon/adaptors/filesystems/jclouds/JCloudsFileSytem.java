@@ -204,9 +204,14 @@ public class JCloudsFileSytem extends FileSystem {
     }
 
     // Test if a directory exists by listing the bucket entry (followed by a
-    // trailing slash).
-    // If at least one element is returned, it is a directory
+    // trailing slash). If at least one element is returned, it is a directory
+    // If the path itself is empty, we only need to check if the bucket exists.
     private boolean dirExists(Path path) {
+
+        if (path.isEmpty()) {
+            return context.getBlobStore().containerExists(bucket);
+        }
+
         ListContainerOptions options = new ListContainerOptions().prefix(toBucketEntry(path) + "/");
         return context.getBlobStore().list(bucket, options).iterator().hasNext();
     }
