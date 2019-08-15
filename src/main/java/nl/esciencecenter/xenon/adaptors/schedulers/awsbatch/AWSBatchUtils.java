@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.amazonaws.SdkClientException;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.batch.model.ArrayProperties;
@@ -125,8 +126,25 @@ public class AWSBatchUtils {
     }
 
     static SubmitJobRequest mapToSubmitJobRequest(JobDescription description, String jobQueue, String jobDefinition) throws InvalidJobDescriptionException {
+        SubmitJobRequest submitJobRequest;
+        if (description.getSchedulerArguments().size() == 1) {
+            String schedulerArgument = description.getSchedulerArguments().get(0);
+            try {
+                submitJobRequest = com.amazonaws.util.json.Jackson.fromJsonString(schedulerArgument, SubmitJobRequest.class);
+            } catch (SdkClientException e) {
+                throw new InvalidJobDescriptionException("awsbatch", "Unable to parse scheduler argument, should be a JSON string in AWS Batch SubmitJob request format", e);
+            }
+        } else if (description.getSchedulerArguments().size() > 1) {
+            throw new InvalidJobDescriptionException("awsbatch", "Only a single scheduler argument as a JSON string in AWS Batch SubmitJob request format is accepted");
+        } else {
+            submitJobRequest = new SubmitJobRequest();
+        }
+        submitJobRequest.withJobDefinition(jobDefinition).withJobQueue(jobQueue);
+
+        // Override container
         ContainerOverrides containerOverride = new ContainerOverrides();
         List<String> command = new ArrayList<>();
+        boolean containerFilled = false;
         if (description.getTempSpace() != -1) {
             throw new InvalidJobDescriptionException("awsbatch", "AWS Batch can not guarantee free temporary space is available");
         }
@@ -137,18 +155,16 @@ public class AWSBatchUtils {
             command.add(description.getExecutable());
             command.addAll(description.getArguments());
             containerOverride.setCommand(command);
+            containerFilled = true;
         }
         if (description.getMaxMemory() > 0) {
             containerOverride.setMemory(description.getMaxMemory());
+            containerFilled = true;
         }
         if (!description.getEnvironment().isEmpty()) {
             containerOverride.setEnvironment(mapEnvironment(description.getEnvironment()));
+            containerFilled = true;
         }
-        SubmitJobRequest submitJobRequest = new SubmitJobRequest()
-            .withJobDefinition(jobDefinition)
-            .withJobQueue(jobQueue)
-            .withContainerOverrides(containerOverride)
-            ;
 
         if (description.getTasksPerNode() > 1) {
             throw new InvalidJobDescriptionException("awsbatch", "AWS Batch can not run multiple tasks per node");
@@ -164,8 +180,15 @@ public class AWSBatchUtils {
         }
         if (description.getCoresPerTask() != 1 ) {
             containerOverride.setVcpus(description.getCoresPerTask());
+            containerFilled = true;
         }
-
+        if (submitJobRequest.getContainerOverrides() != null && containerFilled) {
+            throw new InvalidJobDescriptionException("awsbatch", "Scheduler argument contains a container overrides which conflicts with executable, command, memory or environment of description. " +
+                "Use either scheduler argument without container overrides and set executable|command|memory|environment in description or " +
+                "use scheduler argument with container overrides and don't set executable|command|memory|environment in description");
+        } else if (containerFilled) {
+            submitJobRequest.withContainerOverrides(containerOverride);
+        }
         if (description.getName() != null) {
             submitJobRequest.setJobName(description.getName());
         } else {
@@ -176,7 +199,6 @@ public class AWSBatchUtils {
             submitJobRequest.setTimeout(new JobTimeout().withAttemptDurationSeconds(description.getMaxRuntime() * 60));
         }
         // The following AWS Batch job request fields are not supported:
-        // - parameters
         // - nr of job attempts
         // - job depends on some jobId
         // - sequential and n to n dependencies for array jobs

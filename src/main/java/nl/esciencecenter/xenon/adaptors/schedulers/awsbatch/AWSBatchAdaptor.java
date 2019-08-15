@@ -43,7 +43,8 @@ public class AWSBatchAdaptor extends SchedulerAdaptor {
         "To authenticate use PasswordCredential with access key id as username and secret access key as password. " +
         "Adaptor expects job queues and job definitions to have been created before use. " +
         "The scheduler queues are combinations of AWS Batch job definitions and AWS Batch job queues. " +
-        "Logs of jobs are available in the AWS CloudWatch logs service and can be optionally fetched using the AWSBatchUtils.getLog method.";
+        "Logs of jobs are available in the AWS CloudWatch logs service and can be optionally fetched using the AWSBatchUtils.getLog method." +
+        "AWS Batch submit fields that can not be mapped to a Xenon JobDescription field can be passed as a JSON string in AWS Batch SubmitJob request format as scheduler argument in the job description";
 
     /** All our own properties start with this prefix. */
     public static final String PREFIX = SchedulerAdaptor.ADAPTORS_PREFIX + ADAPTOR_NAME + ".";

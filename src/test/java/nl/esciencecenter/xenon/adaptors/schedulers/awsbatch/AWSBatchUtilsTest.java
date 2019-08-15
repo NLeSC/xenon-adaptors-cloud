@@ -21,7 +21,13 @@ import static org.junit.Assert.assertEquals;
 import java.util.List;
 import java.util.Map;
 
+import com.amazonaws.services.batch.model.ArrayJobDependency;
+import com.amazonaws.services.batch.model.ContainerOverrides;
+import com.amazonaws.services.batch.model.JobDependency;
 import com.amazonaws.services.batch.model.KeyValuePair;
+import com.amazonaws.services.batch.model.ResourceRequirement;
+import com.amazonaws.services.batch.model.ResourceType;
+import com.amazonaws.services.batch.model.RetryStrategy;
 import com.amazonaws.services.batch.model.SubmitJobRequest;
 import org.junit.Rule;
 import org.junit.Test;
@@ -39,7 +45,7 @@ public class AWSBatchUtilsTest {
         JobDescription description = new JobDescription();
         description.setMaxMemory(1024);
 
-        SubmitJobRequest request = mapToSubmitJobRequest(description, "jobqueue1", "computedefinition1");
+        SubmitJobRequest request = mapToSubmitJobRequest(description, "jobqueue1", "jobdefinition1");
 
         int actual = request.getContainerOverrides().getMemory();
         int expected = 1024;
@@ -52,7 +58,7 @@ public class AWSBatchUtilsTest {
         Map<String, String> environment = Map.of("SOME_NAME", "42", "OTHER_NAME", "other_val");
         description.setEnvironment(environment);
 
-        SubmitJobRequest request = mapToSubmitJobRequest(description, "jobqueue1", "computedefinition1");
+        SubmitJobRequest request = mapToSubmitJobRequest(description, "jobqueue1", "jobdefinition1");
 
         List<KeyValuePair> actual = request.getContainerOverrides().getEnvironment();
         List<KeyValuePair> expected = List.of(
@@ -71,7 +77,7 @@ public class AWSBatchUtilsTest {
         JobDescription description = new JobDescription();
         description.setTasksPerNode(42);
 
-        mapToSubmitJobRequest(description, "jobqueue1", "computedefinition1");
+        mapToSubmitJobRequest(description, "jobqueue1", "jobdefinition1");
     }
 
     @Test
@@ -84,7 +90,7 @@ public class AWSBatchUtilsTest {
         description.setTasks(42);
         description.setStartPerTask();
 
-        mapToSubmitJobRequest(description, "jobqueue1", "computedefinition1");
+        mapToSubmitJobRequest(description, "jobqueue1", "jobdefinition1");
     }
 
     @Test
@@ -93,7 +99,7 @@ public class AWSBatchUtilsTest {
         description.setTasksPerNode(1);
         description.setTasks(42);
 
-        SubmitJobRequest request = mapToSubmitJobRequest(description, "jobqueue1", "computedefinition1");
+        SubmitJobRequest request = mapToSubmitJobRequest(description, "jobqueue1", "jobdefinition1");
 
         int actual = request.getArrayProperties().getSize();
         int expected = 42;
@@ -106,7 +112,7 @@ public class AWSBatchUtilsTest {
         description.setTasks(1);
         description.setCoresPerTask(42);
 
-        SubmitJobRequest request = mapToSubmitJobRequest(description, "jobqueue1", "computedefinition1");
+        SubmitJobRequest request = mapToSubmitJobRequest(description, "jobqueue1", "jobdefinition1");
 
         int actual = request.getContainerOverrides().getVcpus();
         int expected = 42;
@@ -120,20 +126,29 @@ public class AWSBatchUtilsTest {
         description.setTasks(2);
         description.setCoresPerTask(4);
 
-        SubmitJobRequest request = mapToSubmitJobRequest(description, "jobqueue1", "computedefinition1");
+        SubmitJobRequest request = mapToSubmitJobRequest(description, "jobqueue1", "jobdefinition1");
 
         assertEquals(4, request.getContainerOverrides().getVcpus().intValue());
         assertEquals(2, request.getArrayProperties().getSize().intValue());
     }
 
     @Test
-    public void mapToSubmitJobRequest_name() throws InvalidJobDescriptionException {
+    public void mapToSubmitJobRequest_customName() throws InvalidJobDescriptionException {
         JobDescription description = new JobDescription();
         description.setName("mynameisawesome");
 
-        SubmitJobRequest request = mapToSubmitJobRequest(description, "jobqueue1", "computedefinition1");
+        SubmitJobRequest request = mapToSubmitJobRequest(description, "jobqueue1", "jobdefinition1");
 
         assertEquals("mynameisawesome", request.getJobName());
+    }
+
+    @Test
+    public void mapToSubmitJobRequest_defaultName() throws InvalidJobDescriptionException {
+        JobDescription description = new JobDescription();
+
+        SubmitJobRequest request = mapToSubmitJobRequest(description, "jobqueue1", "jobdefinition1");
+
+        assertEquals("xenon", request.getJobName());
     }
 
     @Test
@@ -141,7 +156,7 @@ public class AWSBatchUtilsTest {
         JobDescription description = new JobDescription();
         description.setMaxRuntime(5);
 
-        SubmitJobRequest request = mapToSubmitJobRequest(description, "jobqueue1", "computedefinition1");
+        SubmitJobRequest request = mapToSubmitJobRequest(description, "jobqueue1", "jobdefinition1");
 
         assertEquals(5 * 60, request.getTimeout().getAttemptDurationSeconds().intValue());
     }
@@ -155,7 +170,7 @@ public class AWSBatchUtilsTest {
         JobDescription description = new JobDescription();
         description.setTempSpace(42);
 
-        mapToSubmitJobRequest(description, "jobqueue1", "computedefinition1");
+        mapToSubmitJobRequest(description, "jobqueue1", "jobdefinition1");
     }
 
     @Test
@@ -167,6 +182,104 @@ public class AWSBatchUtilsTest {
         JobDescription description = new JobDescription();
         description.setArguments("arg1");
 
-        mapToSubmitJobRequest(description, "jobqueue1", "computedefinition1");
+        mapToSubmitJobRequest(description, "jobqueue1", "jobdefinition1");
+    }
+
+    @Test
+    public void mapToSubmitJobRequest_tooManySchedulerArguments() throws InvalidJobDescriptionException {
+        exceptionRule.expect(InvalidJobDescriptionException.class);
+        exceptionRule.expectMessage("awsbatch");
+        exceptionRule.expectMessage("Only a single scheduler argument as a JSON string in AWS Batch SubmitJob request format is accepted");
+
+        JobDescription description = new JobDescription();
+        description.setSchedulerArguments("first", "second");
+
+        mapToSubmitJobRequest(description, "jobqueue1", "jobdefinition1");
+    }
+
+    @Test
+    public void mapToSubmitJobRequest_schedulerArgumentMalformedJSON() throws InvalidJobDescriptionException {
+        exceptionRule.expect(InvalidJobDescriptionException.class);
+        exceptionRule.expectMessage("awsbatch");
+        exceptionRule.expectMessage("Unable to parse scheduler argument");
+
+        JobDescription description = new JobDescription();
+        description.setSchedulerArguments("foo:bar");
+
+        mapToSubmitJobRequest(description, "jobqueue1", "jobdefinition1");
+    }
+
+    @Test
+    public void mapToSubmitJobRequest_schedulerArgumentWithParameters() throws InvalidJobDescriptionException {
+        JobDescription description = new JobDescription();
+        description.setSchedulerArguments("{\"parameters\": {\"inputfile\": \"avengers.ts\", \"outputfile\": \"avengers.mp4\"}}");
+
+        SubmitJobRequest actual = mapToSubmitJobRequest(description, "jobqueue1", "jobdefinition1");
+
+        Map<String, String> expected = Map.of("inputfile", "avengers.ts", "outputfile", "avengers.mp4");
+        assertEquals(expected, actual.getParameters());
+    }
+
+    @Test
+    public void mapToSubmitJobRequest_schedulerArgumentContainerOverridesAndMaxMemory() throws InvalidJobDescriptionException {
+        exceptionRule.expect(InvalidJobDescriptionException.class);
+        exceptionRule.expectMessage("awsbatch");
+        exceptionRule.expectMessage("Scheduler argument contains a container overrides which conflicts with executable");
+
+        JobDescription description = new JobDescription();
+        String schedulerArgumentWithContainerOverrides = "{\n" +
+            "    \"containerOverrides\": { \n" +
+            "        \"memory\": 512\n" +
+            "    }\n" +
+            "}";
+        description.setSchedulerArguments(schedulerArgumentWithContainerOverrides);
+        description.setMaxMemory(256);
+
+        mapToSubmitJobRequest(description, "jobqueue1", "jobdefinition1");
+    }
+
+    @Test
+    public void mapToSubmitJobRequest_schedulerArgumentKitchenSink() throws InvalidJobDescriptionException {
+        JobDescription description = new JobDescription();
+        String schedulerArgumentWithContainerOverrides = "{\n" +
+            "    \"parameters\": {\n" +
+            "        \"inputfile\": \"avengers.ts\",\n" +
+            "        \"outputfile\": \"avengers.mp4\"\n" +
+            "    },\n" +
+            "    \"retryStrategy\": {\n" +
+            "        \"attempts\": 2\n" +
+            "    },\n" +
+            "    \"containerOverrides\": { \n" +
+            "        \"memory\": 512,\n" +
+            "        \"resourceRequirements\": [\n" +
+            "            {\n" +
+            "                \"value\": \"1\",\n" +
+            "                \"type\": \"GPU\"\n" +
+            "            }\n" +
+            "        ]\n" +
+            "    },\n" +
+            "    \"dependsOn\": [{\n" +
+            "        \"type\": \"SEQUENTIAL\",\n" +
+            "        \"jobId\": \"jobdef2/jobqueue1/d6cb9d3d-6262-425e-844a-8d45341c36ba\"\n" +
+            "    }]\n" +
+            "}";
+        description.setSchedulerArguments(schedulerArgumentWithContainerOverrides);
+
+        SubmitJobRequest actual = mapToSubmitJobRequest(description, "jobqueue1", "jobdefinition1");
+
+        SubmitJobRequest expected = new SubmitJobRequest()
+            .withJobName("xenon")
+            .withJobQueue("jobqueue1")
+            .withJobDefinition("jobdefinition1")
+            .withParameters(Map.of("inputfile", "avengers.ts", "outputfile", "avengers.mp4"))
+            .withRetryStrategy(new RetryStrategy().withAttempts(2))
+            .withContainerOverrides(new ContainerOverrides()
+                .withMemory(512)
+                .withResourceRequirements(List.of(new ResourceRequirement().withType(ResourceType.GPU).withValue("1")))
+            )
+            .withDependsOn(new JobDependency().withType(ArrayJobDependency.SEQUENTIAL).withJobId("jobdef2/jobqueue1/d6cb9d3d-6262-425e-844a-8d45341c36ba"))
+            ;
+
+        assertEquals(expected, actual);
     }
 }
