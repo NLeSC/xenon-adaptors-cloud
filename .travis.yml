@@ -17,6 +17,9 @@ matrix:
           organization: nlesc
       before_install:
         - docker-compose --version
+        - export BOTO_CONFIG=/dev/null
+        - source ~/virtualenv/python3.7/bin/activate
+        - pip install moto[server]
       install:
         - ./gradlew assemble
       script:
@@ -26,7 +29,14 @@ matrix:
         - bash <(curl -s https://codecov.io/bash) -e JDK,OS -F unit -f build/reports/jacoco/test/jacocoTestReport.xml;
         - bash <(curl -s https://codecov.io/bash) -e JDK,OS -F integration -f build/reports/jacoco/jacocoIntegrationTestReport/jacocoIntegrationTestReport.xml;
         - sonar-scanner -Dsonar.login=$SONAR_TOKEN;
-
+      before_cache:
+        - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+        - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+      cache:
+        pip: true
+        directories:
+          - $HOME/.gradle/caches/
+          - $HOME/.gradle/wrapper/
     - os: osx
       env:
         - INTEGRATION_TEST="livelocal"

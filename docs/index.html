@@ -8,12 +8,37 @@ The main entry points are<ul>
 <p>This section contains the adaptor documentation which is generated from the information provided by the adaptors themselves.</p>
 <ul>
 <li><a href="#schedulers">Schedulers</a><ul>
+<li><a href="#awsbatch">awsbatch</a></li>
 </ul></li>
 <li><a href="#filesystems">File systems</a><ul>
 <li><a href="#s3">s3</a></li>
+<li><a href="#azureblob">azureblob</a></li>
 </ul></li>
 </ul>
 <h2><a id="schedulers">Schedulers</a></h2>
+<h2><a id="awsbatch">awsbatch</a></h2>
+<p>The AWS Batch adaptor can submit jobs to AWS Batch service. To authenticate use PasswordCredential with access key id as username and secret access key as password. Adaptor expects job queues and job definitions to have been created before use. The scheduler queues are combinations of AWS Batch job definitions and AWS Batch job queues. Logs of jobs are available in the AWS CloudWatch logs service and can be optionally fetched using the AWSBatchUtils.getLog method.</p>
+<h3>Supported locations:</h3>
+Supported locations for <i>Scheduler.create(type, location, credential, properties)</i> method.<ul>
+<li>region</li>
+<li>http://hostname:port</li>
+</ul>
+<h3>Supported properties:</h3>
+Supported properties for <i>Scheduler.create(type, location, credential, properties)</i> method.
+<table border=1><caption>Supported properties</caption><tr><th>Name</th><th>Description</th><th>Expected type</th><th>Default</th></tr>
+<tr>
+<td><pre>xenon.adaptors.schedulers.awsbatch.poll.delay</pre></td>
+<td>Number of milliseconds between polling the status of a job.</td>
+<td>LONG</td>
+<td>5000</td>
+</tr>
+</table>
+<h3>Supported features</h3><ul>
+<li>Batch: true</li>
+<li>Interactive: false</li>
+<li>Embedded: false</li>
+<li>Uses a <a href="#filesystems">filesystem</a>: false</li>
+</ul>
 <h2><a id="filesystems">File systems</a></h2>
 <h2><a id="s3">s3</a></h2>
 <p>The S3 adaptor uses Apache JClouds to talk to s3 and others. To authenticate use PasswordCredential with access key id as username and secret access key as password</p>
@@ -27,6 +52,27 @@ Supported properties for <i>FileSystem.create(type, location, credential, proper
 <table border=1><caption>Supported properties</caption><tr><th>Name</th><th>Description</th><th>Expected type</th><th>Default</th></tr>
 <tr>
 <td><pre>xenon.adaptors.filesystems.s3.bufferSize</pre></td>
+<td>The buffer size to use when copying files (in bytes).</td>
+<td>SIZE</td>
+<td>64K</td>
+</tr>
+</table>
+<h3>Supported features</h3><ul>
+<li>Read symbolic links: false</li>
+<li>Create symbolic links: false</li>
+<li>Third party copy: false</li>
+</ul>
+<h2><a id="azureblob">azureblob</a></h2>
+<p>The azureblob adaptor uses Apache JClouds to talk to the Azure blobstore. To authenticate use PasswordCredential with access key id as username and secret access key as password</p>
+<h3>Supported locations:</h3>
+Supported locations for <i>FileSystem.create(type, location, credential, properties)</i> method.<ul>
+<li>http[s]://<account-name>.blob.core.windows.net/<container>[/workdir]</li>
+</ul>
+<h3>Supported properties:</h3>
+Supported properties for <i>FileSystem.create(type, location, credential, properties)</i> method.
+<table border=1><caption>Supported properties</caption><tr><th>Name</th><th>Description</th><th>Expected type</th><th>Default</th></tr>
+<tr>
+<td><pre>xenon.adaptors.filesystems.azureblob.bufferSize</pre></td>
 <td>The buffer size to use when copying files (in bytes).</td>
 <td>SIZE</td>
 <td>64K</td>

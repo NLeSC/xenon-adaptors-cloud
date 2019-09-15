@@ -33,4 +33,6 @@ dependencies {
     implementation group: 'org.apache.jclouds.api', name: 's3', version: '2.1.2'
     implementation group: 'org.apache.jclouds.provider', name: 'aws-s3', version: '2.1.2'
     implementation group: 'org.apache.jclouds.provider', name: 'azureblob', version: '2.1.2'
+    implementation group: 'com.amazonaws', name:'aws-java-sdk-batch', version: '1.11.608'
+    implementation group: 'com.amazonaws', name:'aws-java-sdk-logs', version: '1.11.608'
 }
