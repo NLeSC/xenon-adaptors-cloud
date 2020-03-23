@@ -25,10 +25,10 @@ integrationTest.mustRunAfter test
 
 dependencies {
     integrationTestImplementation group: 'junit', name: 'junit', version: '4.12'
-    integrationTestImplementation group: 'com.palantir.docker.compose', name: 'docker-compose-rule-junit4', version: '0.33.0'
+    integrationTestImplementation group: 'com.palantir.docker.compose', name: 'docker-compose-rule-junit4', version: '1.4.2'
 
     integrationTestImplementation group: 'nl.esciencecenter.xenon', name: 'xenon-testapi', version: xenonVersion
-    integrationTestImplementation group: 'com.amazonaws', name:'aws-java-sdk-iam', version: '1.11.605'
+    integrationTestImplementation group: 'com.amazonaws', name:'aws-java-sdk-iam', version: '1.11.749'
 
 //    fixedClientEnvironmentTestCompile group: 'com.palantir.docker.compose', name: 'docker-compose-rule-junit4', version: '0.33.0'
 //    fixedClientEnvironmentTestCompile group: 'junit', name: 'junit', version: '4.12'
@@ -36,7 +36,7 @@ dependencies {
 
     liveTestImplementation group: 'nl.esciencecenter.xenon', name: 'xenon-livetest', version: xenonVersion
 
-    docGeneratorImplementation group: 'nl.esciencecenter.xenon', name: 'xenon-docgenerator', version: '3.0.2'
+    docGeneratorImplementation group: 'nl.esciencecenter.xenon', name: 'xenon-docgenerator', version: xenonVersion
 }
 
 jacocoTestCoverageVerification.group = 'Code coverage reporting'

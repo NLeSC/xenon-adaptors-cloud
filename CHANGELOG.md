@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 * AWS Batch scheduler ([#10](https://github.com/xenon-middleware/xenon-adaptors-cloud/issues/10))
 
+## Fixed
+
+* S3 tests fail ([#14](https://github.com/xenon-middleware/xenon-adaptors-cloud/issues/14))
+
 ## [3.0.2] - 2019-08-07
 
 ### Added
