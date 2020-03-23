@@ -38,6 +38,7 @@ matrix:
           - $HOME/.gradle/caches/
           - $HOME/.gradle/wrapper/
     - os: osx
+      jdk: openjdk11
       env:
         - INTEGRATION_TEST="livelocal"
         - JDK=openjdk11
