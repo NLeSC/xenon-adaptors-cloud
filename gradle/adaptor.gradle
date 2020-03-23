@@ -42,27 +42,19 @@ dependencies {
 jacocoTestCoverageVerification.group = 'Code coverage reporting'
 
 jacoco {
-    toolVersion = "0.8.3"
+    toolVersion = "0.8.5"
 }
 
-task jacocoIntegrationTestReport(type: JacocoReport) {
-    description 'Generate coverage report of integration tests'
-    group 'Code coverage reporting'
-    executionData integrationTest
-    sourceSets sourceSets.main
-    reports {
-        xml.enabled = true // codecov depends on xml format report
-    }
+jacocoTestReport.reports {
+    xml.enabled = true // codecov depends on xml format report
 }
 
-task jacocoFixedClientEnvironmentTestReport(type: JacocoReport) {
-    description 'Generate coverage report of fixed client environment tests'
-    group 'Code coverage reporting'
-    executionData fixedClientEnvironmentTest
-    sourceSets sourceSets.main
-    reports {
-        xml.enabled = true // codecov depends on xml format report
-    }
+jacocoIntegrationTestReport.reports {
+    xml.enabled = true // codecov depends on xml format report
+}
+
+jacocoFixedClientEnvironmentTestReport.reports {
+    xml.enabled = true // codecov depends on xml format report
 }
 
 publishing {
@@ -94,14 +86,8 @@ liveTest.outputs.upToDateWhen {
     false
 }
 
-task jacocoLiveTestReport(type: JacocoReport) {
-    description 'Generate coverage report of live integration tests'
-    group 'Code coverage reporting'
-    executionData liveTest
-    sourceSets sourceSets.main
-    reports {
-        xml.enabled = true // codecov depends on xml format report
-    }
+jacocoLiveTestReport.reports {
+    xml.enabled = true // codecov depends on xml format report
 }
 
 task adaptorDocumentation(type: JavaExec) {
