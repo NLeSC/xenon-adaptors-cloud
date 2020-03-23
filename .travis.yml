@@ -14,7 +14,7 @@ matrix:
         - docker
       addons:
         sonarqube:
-          organization: nlesc
+          organization: xenon-middleware
       before_install:
         - docker-compose --version
         - export BOTO_CONFIG=/dev/null
