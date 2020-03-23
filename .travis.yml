@@ -28,7 +28,7 @@ matrix:
         - ./gradlew jacocoIntegrationTestReport jacocoTestReport
         - bash <(curl -s https://codecov.io/bash) -e JDK,OS -F unit -f build/reports/jacoco/test/jacocoTestReport.xml;
         - bash <(curl -s https://codecov.io/bash) -e JDK,OS -F integration -f build/reports/jacoco/jacocoIntegrationTestReport/jacocoIntegrationTestReport.xml;
-        - sonar-scanner -Dsonar.login=$SONAR_TOKEN;
+        - ./gradlew sonarqube
       before_cache:
         - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
         - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
