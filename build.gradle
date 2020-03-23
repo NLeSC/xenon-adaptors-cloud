@@ -1,6 +1,6 @@
 plugins {
     // ide
-    id 'java'
+    id 'java-library'
     id 'idea'
     id 'eclipse'
     // test coverage

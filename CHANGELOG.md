@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 * AWS Batch scheduler ([#10](https://github.com/xenon-middleware/xenon-adaptors-cloud/issues/10))
 
+## Changed
+
+* Upgraded to Xenon library 3.1.0
+* Upgraded gradle 6.2.2
+, gradle plugins and deps to latest versions
+
 ## Fixed
 
 * S3 tests fail ([#14](https://github.com/xenon-middleware/xenon-adaptors-cloud/issues/14))
