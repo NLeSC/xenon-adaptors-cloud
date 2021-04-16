@@ -11,8 +11,6 @@ on:
 jobs:
   linux:
     runs-on: ubuntu-latest
-    env:
-      OS: ${{ runner.os }}
     steps:
     - uses: actions/checkout@v2
     - name: Set up JDK 11
@@ -55,18 +53,14 @@ jobs:
       uses: codecov/codecov-action@v1
       with:
         files: build/reports/jacoco/test/jacocoTestReport.xml
-        flags: unit,jdk11
-        env_vars: OS
+        flags: unit,jdk11,${{ runner.os }}
     - name: Integration coverage reports
       uses: codecov/codecov-action@v1
       with:
         files: build/reports/jacoco/jacocoIntegrationTestReport/jacocoIntegrationTestReport.xml
-        flags: integration,jdk11
-        env_vars: OS
+        flags: integration,jdk11,${{ runner.os }}
   osx:
     runs-on: macos-latest
-    env:
-      OS: ${{ runner.os }}
     steps:
     - uses: actions/checkout@v2
     - name: Set up JDK 11
@@ -90,5 +84,4 @@ jobs:
       uses: codecov/codecov-action@v1
       with:
         files: build/reports/jacoco/test/jacocoTestReport.xml
-        flags: unit,jdk11
-        env_vars: OS
+        flags: unit,jdk11,${{ runner.os }}
