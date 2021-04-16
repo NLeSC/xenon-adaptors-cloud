@@ -12,7 +12,7 @@ jobs:
   linux:
     runs-on: ubuntu-latest
     env:
-      OS: ${{ matrix.os }}
+      OS: ${{ runner.os }}
     steps:
     - uses: actions/checkout@v2
     - name: Set up JDK 11
@@ -23,9 +23,11 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Set up Python
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v2
       with:
         python-version: 3.9
+    - name: Install wheel
+      run: pip install -U wheel pip
     - name: Install moto
       run: pip install moto[server]
     - name: Cache SonarCloud packages
@@ -64,7 +66,7 @@ jobs:
   osx:
     runs-on: macos-latest
     env:
-      OS: ${{ matrix.os }}
+      OS: ${{ runner.os }}
     steps:
     - uses: actions/checkout@v2
     - name: Set up JDK 11
@@ -83,7 +85,7 @@ jobs:
     - name: Build
       run: ./gradlew assemble
     - name: Check
-      run: ./gradlew check jacocoTestReport
+      run: ./gradlew test jacocoTestReport
     - name: Unit coverage reports
       uses: codecov/codecov-action@v1
       with:

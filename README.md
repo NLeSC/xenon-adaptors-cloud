@@ -1,5 +1,6 @@
 # xenon-adaptors-cloud
 
+[![Java CI with Gradle](https://github.com/xenon-middleware/xenon-adaptors-cloud/actions/workflows/build.yml/badge.svg)](https://github.com/xenon-middleware/xenon-adaptors-cloud/actions/workflows/build.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=xenon-middleware_xenon-adaptors-cloud&metric=alert_status)](https://sonarcloud.io/dashboard?id=xenon-middleware_xenon-adaptors-cloud)
 [![codecov](https://codecov.io/gh/xenon-middleware/xenon-adaptors-cloud/branch/master/graph/badge.svg)](https://codecov.io/gh/xenon-middleware/xenon-adaptors-cloud)
 [![DOI](https://zenodo.org/badge/136933840.svg)](https://zenodo.org/badge/latestdoi/136933840)
